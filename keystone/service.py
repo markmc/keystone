@@ -21,6 +21,7 @@ import webob.dec
 import webob.exc
 
 from keystone import catalog
+from keystone import config
 from keystone import exception
 from keystone import identity
 from keystone import policy
@@ -117,7 +118,7 @@ class AdminVersionRouter(wsgi.ComposingRouter):
 
 class VersionController(wsgi.Application):
     def __init__(self, version_type):
-        self.catalog_api = catalog.Manager()
+        self.catalog_api = catalog.Manager(config.CONF)
         self.url_key = "%sURL" % version_type
         super(VersionController, self).__init__()
 
@@ -179,10 +180,10 @@ class NoopController(wsgi.Application):
 
 class TokenController(wsgi.Application):
     def __init__(self):
-        self.catalog_api = catalog.Manager()
-        self.identity_api = identity.Manager()
-        self.token_api = token.Manager()
-        self.policy_api = policy.Manager()
+        self.catalog_api = catalog.Manager(config.CONF)
+        self.identity_api = identity.Manager(config.CONF)
+        self.token_api = token.Manager(config.CONF)
+        self.policy_api = policy.Manager(config.CONF)
         super(TokenController, self).__init__()
 
     def authenticate(self, context, auth=None):

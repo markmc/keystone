@@ -102,7 +102,3 @@ global_opts = [
     ]
 
 CONF.register_opts(global_opts)
-
-for backend in ['catalog', 'identity', 'policy', 'token', 'ec2']:
-    CONF.register_group(cfg.OptGroup(backend))
-    CONF.register_opt(cfg.StrOpt('driver'), group=backend)

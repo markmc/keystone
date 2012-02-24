@@ -23,11 +23,6 @@ from keystone.common import manager
 from keystone.openstack.common import cfg
 
 
-CONF = config.CONF
-expiration_opt = cfg.IntOpt('expiration', default=86400)
-CONF.register_opt(expiration_opt, group='token')
-
-
 class Manager(manager.Manager):
     """Default pivot point for the Token backend.
 
@@ -36,12 +31,18 @@ class Manager(manager.Manager):
 
     """
 
-    def __init__(self):
-        super(Manager, self).__init__(CONF.token.driver)
+    opt_group = cfg.OptGroup('token')
+    driver_opt = cfg.StrOpt('driver',
+                            default='keystone.token.backends.kvs.Token')
+
+    def __init__(self, conf):
+        super(Manager, self).__init__(conf, self.opt_group, self.driver_opt)
 
 
 class Driver(object):
     """Interface description for a Token driver."""
+
+    expiration_opt = cfg.IntOpt('expiration', default=86400)
 
     def get_token(self, token_id):
         """Get a token by id.
@@ -94,5 +95,7 @@ class Driver(object):
         :returns: datetime.datetime object
 
         """
-        expire_delta = datetime.timedelta(seconds=CONF.token.expiration)
+        config.CONF.register_group(Manager.opt_group)
+        config.CONF.register_opt(self.expiration_opt, group='token')
+        expire_delta = datetime.timedelta(seconds=config.CONF.token.expiration)
         return datetime.datetime.now() + expire_delta

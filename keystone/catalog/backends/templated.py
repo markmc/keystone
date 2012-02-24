@@ -20,11 +20,6 @@ from keystone.catalog.backends import kvs
 from keystone.openstack.common import cfg
 
 
-CONF = config.CONF
-template_opt = cfg.StrOpt('template_file')
-CONF.register_opt(template_opt, group='catalog')
-
-
 def parse_templates(template_lines):
     o = {}
     for line in template_lines:
@@ -84,18 +79,22 @@ class TemplatedCatalog(kvs.Catalog):
 
     """
 
+    template_opt = cfg.StrOpt('template_file',
+                              default='./etc/default_catalog.templates')
+
     def __init__(self, templates=None):
         if templates:
             self.templates = templates
         else:
-            self._load_templates(CONF.catalog.template_file)
+            config.CONF.register_opt(self.template_opt, group='catalog')
+            self._load_templates(config.CONF.catalog.template_file)
         super(TemplatedCatalog, self).__init__()
 
     def _load_templates(self, template_file):
         self.templates = parse_templates(open(template_file))
 
     def get_catalog(self, user_id, tenant_id, metadata=None):
-        d = dict(CONF.iteritems())
+        d = dict(config.CONF.iteritems())
         d.update({'tenant_id': tenant_id,
                   'user_id': user_id})
 

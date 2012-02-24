@@ -25,6 +25,9 @@ class PamIdentity(object):
     Tenant is always the same as User, root user has admin role.
     """
 
+    def __init__(self, conf):
+        pass
+
     def authenticate(self, username, password, **kwargs):
         if pam.authenticate(username, password):
             metadata = {}

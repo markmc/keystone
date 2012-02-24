@@ -34,6 +34,10 @@ class Ec2Credential(sql.ModelBase, sql.DictBase):
 
 
 class Ec2(sql.Base):
+
+    def __init__(self, conf):
+        sql.Base.__init__(self)
+
     def get_credential(self, credential_id):
         session = self.get_session()
         credential_ref = session.query(Ec2Credential)\

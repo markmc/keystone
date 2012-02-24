@@ -25,7 +25,7 @@ class Manager(object):
         self.conf.register_opt(driver_opt, group=opt_group)
 
         driver_name = conf[opt_group.name][driver_opt.name]
-        self.driver = utils.import_object(driver_name)
+        self.driver = utils.import_object(driver_name, conf)
 
     def __getattr__(self, name):
         """Forward calls to the underlying driver."""

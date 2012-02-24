@@ -24,6 +24,10 @@ class TrivialTrue(object):
 
 
 class SimpleMatch(object):
+
+    def __init__(self, conf):
+        pass
+
     def can_haz(self, target, credentials):
         """Check whether key-values in target are present in credentials."""
         # TODO(termie): handle ANDs, probably by providing a tuple instead of a

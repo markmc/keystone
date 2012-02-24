@@ -23,6 +23,11 @@ from keystone import token
 
 
 class Token(kvs.Base, token.Driver):
+
+    def __init__(self, conf, db=None):
+        kvs.Base.__init__(self, db)
+        token.Driver.__init__(self, conf)
+
     # Public interface
     def get_token(self, token_id):
         token = self.db.get('token-%s' % token_id)

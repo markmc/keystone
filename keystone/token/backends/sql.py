@@ -46,6 +46,11 @@ class TokenModel(sql.ModelBase, sql.DictBase):
 
 
 class Token(sql.Base, token.Driver):
+
+    def __init__(self, conf):
+        sql.Base.__init__(self)
+        token.Driver.__init__(self, conf)
+
     # Public interface
     def get_token(self, token_id):
         session = self.get_session()

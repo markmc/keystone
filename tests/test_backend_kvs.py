@@ -13,6 +13,8 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
+from keystone import config
 from keystone import test
 from keystone.identity.backends import kvs as identity_kvs
 from keystone.token.backends import kvs as token_kvs
@@ -25,20 +27,20 @@ import default_fixtures
 class KvsIdentity(test.TestCase, test_backend.IdentityTests):
   def setUp(self):
     super(KvsIdentity, self).setUp()
-    self.identity_api = identity_kvs.Identity(db={})
+    self.identity_api = identity_kvs.Identity(config.CONF, db={})
     self.load_fixtures(default_fixtures)
 
 
 class KvsToken(test.TestCase, test_backend.TokenTests):
   def setUp(self):
     super(KvsToken, self).setUp()
-    self.token_api = token_kvs.Token(db={})
+    self.token_api = token_kvs.Token(config.CONF, db={})
 
 
 class KvsCatalog(test.TestCase):
   def setUp(self):
     super(KvsCatalog, self).setUp()
-    self.catalog_api = catalog_kvs.Catalog(db={})
+    self.catalog_api = catalog_kvs.Catalog(config.CONF, db={})
     self._load_fixtures()
 
   def _load_fixtures(self):

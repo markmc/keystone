@@ -39,7 +39,7 @@ class ImportLegacy(test.TestCase):
                            test.testsdir('test_overrides.conf'),
                            test.testsdir('backend_sql.conf')])
         sql_util.setup_test_database(CONF)
-        self.identity_api = identity_sql.Identity()
+        self.identity_api = identity_sql.Identity(CONF)
 
     def setup_old_database(self, sql_dump):
         sql_path = test.testsdir(sql_dump)

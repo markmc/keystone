@@ -18,6 +18,10 @@ from keystone.common import kvs
 
 
 class Ec2(kvs.Base):
+
+    def __init__(self, conf, db=None):
+        kvs.Base.__init__(self, db)
+
     # Public interface
     def get_credential(self, credential_id):
         credential_ref = self.db.get('credential-%s' % credential_id)

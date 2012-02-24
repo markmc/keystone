@@ -20,10 +20,12 @@ import datetime
 
 from keystone import config
 from keystone.common import manager
+from keystone.openstack.common import cfg
 
 
 CONF = config.CONF
-config.register_int('expiration', group='token', default=86400)
+expiration_opt = cfg.IntOpt('expiration', default=86400)
+CONF.register_opt(expiration_opt, group='token')
 
 
 class Manager(manager.Manager):

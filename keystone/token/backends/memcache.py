@@ -23,10 +23,13 @@ from keystone import config
 from keystone import exception
 from keystone import token
 from keystone.common import utils
+from keystone.openstack.common import cfg
 
 
 CONF = config.CONF
-config.register_str('servers', group='memcache', default='localhost:11211')
+servers_opt = cfg.StrOpt('servers', default='localhost:11211')
+CONF.register_group(cfg.OptGroup('memcache'))
+CONF.register_opt(servers_opt, group='memcache')
 
 
 class Token(token.Driver):

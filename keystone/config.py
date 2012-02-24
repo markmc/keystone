@@ -92,68 +92,28 @@ def setup_logging(conf):
     root_logger.addHandler(handler)
 
 
-def register_str(*args, **kw):
-    conf = kw.pop('conf', CONF)
-    group = _ensure_group(kw, conf)
-    return conf.register_opt(cfg.StrOpt(*args, **kw), group=group)
-
-
-def register_cli_str(*args, **kw):
-    conf = kw.pop('conf', CONF)
-    group = _ensure_group(kw, conf)
-    return conf.register_cli_opt(cfg.StrOpt(*args, **kw), group=group)
-
-
-def register_bool(*args, **kw):
-    conf = kw.pop('conf', CONF)
-    group = _ensure_group(kw, conf)
-    return conf.register_opt(cfg.BoolOpt(*args, **kw), group=group)
-
-
-def register_cli_bool(*args, **kw):
-    conf = kw.pop('conf', CONF)
-    group = _ensure_group(kw, conf)
-    return conf.register_cli_opt(cfg.BoolOpt(*args, **kw), group=group)
-
-
-def register_int(*args, **kw):
-    conf = kw.pop('conf', CONF)
-    group = _ensure_group(kw, conf)
-    return conf.register_opt(cfg.IntOpt(*args, **kw), group=group)
-
-
-def register_cli_int(*args, **kw):
-    conf = kw.pop('conf', CONF)
-    group = _ensure_group(kw, conf)
-    return conf.register_cli_opt(cfg.IntOpt(*args, **kw), group=group)
-
-
-def _ensure_group(kw, conf):
-    group = kw.pop('group', None)
-    if group:
-        conf.register_group(cfg.OptGroup(name=group))
-    return group
-
-
 CONF = CommonConfig(project='keystone')
 
+global_opts = [
+    cfg.StrOpt('admin_token', default='ADMIN'),
+    cfg.StrOpt('compute_port'),
+    cfg.StrOpt('admin_port'),
+    cfg.StrOpt('public_port'),
+    ]
 
-register_str('admin_token', default='ADMIN')
-register_str('compute_port')
-register_str('admin_port')
-register_str('public_port')
+CONF.register_opts(global_opts)
 
+sql_opts = [
+    cfg.StrOpt('connection'),
+    cfg.StrOpt('idle_timeout'),
+    cfg.StrOpt('min_pool_size'),
+    cfg.StrOpt('max_pool_size'),
+    cfg.StrOpt('pool_timeout'),
+    ]
 
-# sql options
-register_str('connection', group='sql')
-register_str('idle_timeout', group='sql')
-register_str('min_pool_size', group='sql')
-register_str('max_pool_size', group='sql')
-register_str('pool_timeout', group='sql')
+CONF.register_group(cfg.OptGroup('sql'))
+CONF.register_opts(sql_opts, group='sql')
 
-
-register_str('driver', group='catalog')
-register_str('driver', group='identity')
-register_str('driver', group='policy')
-register_str('driver', group='token')
-register_str('driver', group='ec2')
+for backend in ['catalog', 'identity', 'policy', 'token', 'ec2']:
+    CONF.register_group(cfg.OptGroup(backend))
+    CONF.register_opt(cfg.StrOpt('driver'), group=backend)

@@ -31,10 +31,12 @@ import passlib.hash
 
 from keystone import config
 from keystone.common import logging
+from keystone.openstack.common import cfg
 
 
 CONF = config.CONF
-config.register_int('crypt_strength', default=40000)
+crypt_strength_opt = cfg.IntOpt('crypt_strength', default=40000)
+CONF.register_opt(crypt_strength_opt)
 
 
 ISO_TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'

@@ -18,10 +18,6 @@
 import json
 
 from keystone import test
-from keystone import config
-
-
-CONF = config.CONF
 
 
 class VersionTestCase(test.TestCase):
@@ -48,7 +44,7 @@ class VersionTestCase(test.TestCase):
                     "links": [{
                             "rel": "self",
                             "href": ("http://localhost:%s/v2.0/" %
-                                      CONF.public_port),
+                                     self.conf.public_port),
                         }, {
                             "rel": "describedby",
                             "type": "text/html",
@@ -85,7 +81,7 @@ class VersionTestCase(test.TestCase):
                     "links": [{
                             "rel": "self",
                             "href": ("http://localhost:%s/v2.0/" %
-                                      CONF.admin_port),
+                                     self.conf.admin_port),
                         }, {
                             "rel": "describedby",
                             "type": "text/html",

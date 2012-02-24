@@ -23,12 +23,9 @@ from keystone import config
 from keystone.common import utils
 
 
-CONF = config.CONF
-CONF.set_usage('%prog COMMAND')
-
-
 class BaseApp(object):
-    def __init__(self, argv=None):
+    def __init__(self, conf, argv=None):
+        self.conf = conf
         self.argv = argv
 
     def run(self):
@@ -36,7 +33,7 @@ class BaseApp(object):
 
     def missing_param(self, param):
         print 'Missing parameter: %s' % param
-        CONF.print_help()
+        self.conf.print_help()
         print_commands(CMDS)
         sys.exit(1)
 
@@ -46,12 +43,9 @@ class DbSync(BaseApp):
 
     name = 'db_sync'
 
-    def __init__(self, *args, **kw):
-        super(DbSync, self).__init__(*args, **kw)
-
     def main(self):
         for k in ['identity', 'catalog', 'policy', 'token']:
-            driver = utils.import_object(getattr(CONF, k).driver, conf)
+            driver = utils.import_object(self.conf[k].driver, self.conf)
             if hasattr(driver, 'db_sync'):
                 driver.db_sync()
 
@@ -61,15 +55,12 @@ class ImportLegacy(BaseApp):
 
     name = 'import_legacy'
 
-    def __init__(self, *args, **kw):
-        super(ImportLegacy, self).__init__(*args, **kw)
-
     def main(self):
         from keystone.common.sql import legacy
         if len(self.argv) < 2:
             return self.missing_param('old_db')
         old_db = self.argv[1]
-        migration = legacy.LegacyMigration(old_db)
+        migration = legacy.LegacyMigration(self.conf, old_db)
         migration.migrate_all()
 
 
@@ -78,15 +69,12 @@ class ExportLegacyCatalog(BaseApp):
 
     name = 'export_legacy_catalog'
 
-    def __init__(self, *args, **kw):
-        super(ExportLegacyCatalog, self).__init__(*args, **kw)
-
     def main(self):
         from keystone.common.sql import legacy
         if len(self.argv) < 2:
             return self.missing_param('old_db')
         old_db = self.argv[1]
-        migration = legacy.LegacyMigration(old_db)
+        migration = legacy.LegacyMigration(self.conf, old_db)
         print '\n'.join(migration.dump_catalog())
 
 
@@ -129,22 +117,24 @@ def print_commands(cmds):
     print '\n'.join(o)
 
 
-def run(cmd, args):
-    return CMDS[cmd](argv=args).run()
+def run(cmd, conf, args):
+    return CMDS[cmd](conf, argv=args).run()
 
 
 def main(argv=None, config_files=None):
-    CONF.reset()
-    args = CONF(config_files=config_files, args=argv)
+    conf = config.CONF
+    conf.reset()
+    conf.set_usage('%prog COMMAND')
+    args = conf(config_files=config_files, args=argv)
 
     if len(args) < 2:
-        CONF.print_help()
+        conf.print_help()
         print_commands(CMDS)
         sys.exit(1)
 
     cmd = args[1]
     if cmd in CMDS:
-        return run(cmd, (args[:1] + args[2:]))
+        return run(cmd, conf, (args[:1] + args[2:]))
     else:
         print_commands(CMDS)
         sys.exit("Unknown command: %s" % cmd)

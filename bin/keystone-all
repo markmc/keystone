@@ -22,9 +22,6 @@ from keystone import config
 from keystone.common import wsgi
 
 
-CONF = config.CONF
-
-
 def create_server(conf, name, port):
     app = deploy.loadapp('config:%s' % conf, name=name)
     return wsgi.Server(app, port)
@@ -52,19 +49,20 @@ if __name__ == '__main__':
     if os.path.exists(dev_conf):
         config_files = [dev_conf]
 
-    CONF(config_files=config_files)
+    conf = config.CONF
+    conf(config_files=config_files)
 
-    config.setup_logging(CONF)
+    config.setup_logging(conf)
 
     # Log the options used when starting if we're in debug mode...
-    if CONF.debug:
-        CONF.log_opt_values(logging.getLogger(CONF.prog), logging.DEBUG)
+    if conf.debug:
+        conf.log_opt_values(logging.getLogger(conf.prog), logging.DEBUG)
 
     servers = []
-    servers.append(create_server(CONF.config_file[0],
+    servers.append(create_server(conf.config_file[0],
                                  'admin',
-                                 wsgi.get_admin_port(CONF)))
-    servers.append(create_server(CONF.config_file[0],
+                                 wsgi.get_admin_port(conf)))
+    servers.append(create_server(conf.config_file[0],
                                  'main',
-                                 wsgi.get_public_port(CONF)))
+                                 wsgi.get_public_port(conf)))
     serve(*servers)

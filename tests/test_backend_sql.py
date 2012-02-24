@@ -33,7 +33,7 @@ class SqlIdentity(test.TestCase, test_backend.IdentityTests):
     CONF(config_files=[test.etcdir('keystone.conf'),
                        test.testsdir('test_overrides.conf'),
                        test.testsdir('backend_sql.conf')])
-    sql_util.setup_test_database()
+    sql_util.setup_test_database(CONF)
     self.identity_api = identity_sql.Identity()
     self.load_fixtures(default_fixtures)
 
@@ -44,7 +44,7 @@ class SqlToken(test.TestCase, test_backend.TokenTests):
     CONF(config_files=[test.etcdir('keystone.conf'),
                        test.testsdir('test_overrides.conf'),
                        test.testsdir('backend_sql.conf')])
-    sql_util.setup_test_database()
+    sql_util.setup_test_database(CONF)
     self.token_api = token_sql.Token()
 
 

@@ -2,17 +2,13 @@
 
 import os
 
-from keystone import config
 from keystone.common.sql import migration
 
 
-CONF = config.CONF
-
-
-def setup_test_database():
+def setup_test_database(conf):
     # TODO(termie): be smart about this
     try:
         os.unlink('bla.db')
     except Exception:
         pass
-    migration.db_sync()
+    migration.db_sync(conf)

@@ -13,10 +13,8 @@ import sqlalchemy.orm
 import sqlalchemy.pool
 import sqlalchemy.engine.url
 
+from keystone.common.sql import opts
 from keystone import config
-
-
-CONF = config.CONF
 
 
 ModelBase = declarative.declarative_base()
@@ -88,7 +86,7 @@ class Base(object):
     def get_session(self, autocommit=True, expire_on_commit=False):
         """Return a SQLAlchemy session."""
         if self._MAKER is None or self._ENGINE is None:
-            self._ENGINE = self.get_engine()
+            self._ENGINE = self.get_engine(config.CONF)
             self._MAKER = self.get_maker(self._ENGINE,
                                          autocommit,
                                          expire_on_commit)
@@ -99,18 +97,21 @@ class Base(object):
         #session.flush = nova.exception.wrap_db_error(session.flush)
         return session
 
-    def get_engine(self):
+    def get_engine(self, conf):
         """Return a SQLAlchemy engine."""
-        connection_dict = sqlalchemy.engine.url.make_url(CONF.sql.connection)
+        sql_connection = opts.get_sql_connection(conf)
+        sql_idle_timeout = opts.get_sql_idle_timeout(conf)
 
-        engine_args = {'pool_recycle': CONF.sql.idle_timeout,
+        connection_dict = sqlalchemy.engine.url.make_url(sql_connection)
+
+        engine_args = {'pool_recycle': sql_idle_timeout,
                        'echo': False,
                        }
 
         if 'sqlite' in connection_dict.drivername:
             engine_args['poolclass'] = sqlalchemy.pool.NullPool
 
-        return sql.create_engine(CONF.sql.connection, **engine_args)
+        return sql.create_engine(sql_connection, **engine_args)
 
     def get_maker(self, engine, autocommit=True, expire_on_commit=False):
         """Return a SQLAlchemy sessionmaker using the given engine."""

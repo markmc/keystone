@@ -81,6 +81,7 @@ class TemplatedCatalog(kvs.Catalog):
 
     template_opt = cfg.StrOpt('template_file',
                               default='./etc/default_catalog.templates')
+    compute_port_opt = cfg.StrOpt('compute_port', default=3000)
 
     def __init__(self, templates=None):
         if templates:
@@ -94,6 +95,7 @@ class TemplatedCatalog(kvs.Catalog):
         self.templates = parse_templates(open(template_file))
 
     def get_catalog(self, user_id, tenant_id, metadata=None):
+        config.CONF.register_opt(self.compute_port_opt)
         d = dict(config.CONF.iteritems())
         d.update({'tenant_id': tenant_id,
                   'user_id': user_id})

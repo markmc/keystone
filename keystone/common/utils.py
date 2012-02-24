@@ -27,16 +27,7 @@ import sys
 import time
 import urllib
 
-import passlib.hash
-
-from keystone import config
 from keystone.common import logging
-from keystone.openstack.common import cfg
-
-
-CONF = config.CONF
-crypt_strength_opt = cfg.IntOpt('crypt_strength', default=40000)
-CONF.register_opt(crypt_strength_opt)
 
 
 ISO_TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
@@ -146,29 +137,6 @@ class Ec2Signer(object):
         logging.debug('len(b64)=%d', len(b64))
         logging.debug('base64 encoded digest: %s', b64)
         return b64
-
-
-def hash_password(password):
-    """Hash a password. Hard."""
-    password_utf8 = password.encode('utf-8')
-    if passlib.hash.sha512_crypt.identify(password_utf8):
-        return password_utf8
-    h = passlib.hash.sha512_crypt.encrypt(password_utf8,
-                                          rounds=CONF.crypt_strength)
-    return h
-
-
-def check_password(password, hashed):
-    """Check that a plaintext password matches hashed.
-
-    hashpw returns the salt value concatenated with the actual hash value.
-    It extracts the actual salt if this value is then passed as the salt.
-
-    """
-    if password is None:
-        return False
-    password_utf8 = password.encode('utf-8')
-    return passlib.hash.sha512_crypt.verify(password_utf8, hashed)
 
 
 # From python 2.7

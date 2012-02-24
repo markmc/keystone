@@ -36,25 +36,6 @@ from keystone.common import utils
 
 
 class UtilsTestCase(test.TestCase):
-    def test_hash(self):
-        password = 'right'
-        wrong = 'wrongwrong'  # Two wrongs don't make a right
-        hashed = utils.hash_password(password)
-        self.assertTrue(utils.check_password(password, hashed))
-        self.assertFalse(utils.check_password(wrong, hashed))
-
-    def test_hash_edge_cases(self):
-        hashed = utils.hash_password('secret')
-        self.assertFalse(utils.check_password('', hashed))
-        self.assertFalse(utils.check_password(None, hashed))
-
-    def test_hash_unicode(self):
-        password = u'Comment \xe7a va'
-        wrong = 'Comment ?a va'
-        hashed = utils.hash_password(password)
-        self.assertTrue(utils.check_password(password, hashed))
-        self.assertFalse(utils.check_password(wrong, hashed))
-
     def test_isotime(self):
         dt = datetime.datetime(year=1987, month=10, day=13,
                                hour=1, minute=2, second=3)

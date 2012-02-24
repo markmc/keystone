@@ -14,9 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystone import identity
 from keystone.common import kvs
-from keystone.common import utils
+from keystone.common import passwd
+from keystone import config
+from keystone import identity
 
 
 def _filter_user(user_ref):
@@ -30,7 +31,7 @@ def _filter_user(user_ref):
 def _ensure_hashed_password(user_ref):
     pw = user_ref.get('password', None)
     if pw is not None:
-        user_ref['password'] = utils.hash_password(pw)
+        user_ref['password'] = passwd.hash_password(config.CONF, pw)
     return user_ref
 
 
@@ -47,7 +48,7 @@ class Identity(kvs.Base, identity.Driver):
         tenant_ref = None
         metadata_ref = None
         if (not user_ref
-            or not utils.check_password(password, user_ref.get('password'))):
+            or not passwd.check_password(password, user_ref.get('password'))):
             raise AssertionError('Invalid user / password')
         if tenant_id and tenant_id not in user_ref['tenants']:
             raise AssertionError('Invalid tenant')

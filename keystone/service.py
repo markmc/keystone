@@ -21,7 +21,6 @@ import webob.dec
 import webob.exc
 
 from keystone import catalog
-from keystone import config
 from keystone import exception
 from keystone import identity
 from keystone import policy
@@ -429,19 +428,3 @@ class ExtensionsController(wsgi.Application):
 
     def get_extensions_info(self, context):
         raise NotImplementedError()
-
-
-def public_app_factory(global_conf, **local_conf):
-    return PublicRouter(config.CONF)
-
-
-def admin_app_factory(global_conf, **local_conf):
-    return AdminRouter(config.CONF)
-
-
-def public_version_app_factory(global_conf, **local_conf):
-    return PublicVersionRouter(config.CONF)
-
-
-def admin_version_app_factory(global_conf, **local_conf):
-    return AdminVersionRouter(config.CONF)

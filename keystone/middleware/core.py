@@ -20,9 +20,7 @@ import webob.exc
 
 from keystone import config
 from keystone.common import wsgi
-
-
-CONF = config.CONF
+from keystone.openstack.common import cfg
 
 
 # Header used to transmit the auth token
@@ -53,11 +51,17 @@ class AdminTokenAuthMiddleware(wsgi.Middleware):
 
     """
 
+    admin_token_opt = cfg.StrOpt('admin_token', default='ADMIN')
+
     def process_request(self, request):
         token = request.headers.get(AUTH_TOKEN_HEADER)
         context = request.environ.get(CONTEXT_ENV, {})
-        context['is_admin'] = (token == CONF.admin_token)
+        context['is_admin'] = self._is_admin_token(token)
         request.environ[CONTEXT_ENV] = context
+
+    def _is_admin_token(self, token):
+        config.CONF.register_opt(self.admin_token_opt)
+        return token == config.CONF.admin_token
 
 
 class PostParamsMiddleware(wsgi.Middleware):

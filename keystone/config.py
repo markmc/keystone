@@ -95,7 +95,6 @@ def setup_logging(conf):
 CONF = CommonConfig(project='keystone')
 
 global_opts = [
-    cfg.StrOpt('admin_token', default='ADMIN'),
     cfg.StrOpt('compute_port'),
     cfg.StrOpt('admin_port'),
     cfg.StrOpt('public_port'),

@@ -18,7 +18,6 @@ import json
 
 import webob.exc
 
-from keystone import config
 from keystone.common import wsgi
 from keystone.openstack.common import cfg
 
@@ -53,6 +52,10 @@ class AdminTokenAuthMiddleware(wsgi.Middleware):
 
     admin_token_opt = cfg.StrOpt('admin_token', default='ADMIN')
 
+    def __init__(self, application, conf):
+        super(AdminTokenAuthMiddleware, self).__init__(application, conf)
+        self.conf.register_opt(self.admin_token_opt)
+
     def process_request(self, request):
         token = request.headers.get(AUTH_TOKEN_HEADER)
         context = request.environ.get(CONTEXT_ENV, {})
@@ -60,8 +63,7 @@ class AdminTokenAuthMiddleware(wsgi.Middleware):
         request.environ[CONTEXT_ENV] = context
 
     def _is_admin_token(self, token):
-        config.CONF.register_opt(self.admin_token_opt)
-        return token == config.CONF.admin_token
+        return token == self.conf.admin_token
 
 
 class PostParamsMiddleware(wsgi.Middleware):

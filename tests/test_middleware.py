@@ -16,8 +16,12 @@
 
 import webob
 
+from keystone import config
 from keystone import middleware
 from keystone import test
+
+
+CONF = config.CONF
 
 
 def make_request(**kwargs):
@@ -34,7 +38,7 @@ class TokenAuthMiddlewareTest(test.TestCase):
     def test_request(self):
         req = make_request()
         req.headers[middleware.AUTH_TOKEN_HEADER] = 'MAGIC'
-        middleware.TokenAuthMiddleware(None).process_request(req)
+        middleware.TokenAuthMiddleware(None, CONF).process_request(req)
         context = req.environ[middleware.CONTEXT_ENV]
         self.assertEqual(context['token_id'], 'MAGIC')
 
@@ -42,17 +46,19 @@ class TokenAuthMiddlewareTest(test.TestCase):
 class AdminTokenAuthMiddlewareTest(test.TestCase):
     def test_request_admin(self):
         req = make_request()
+        _middleware = middleware.AdminTokenAuthMiddleware(None, CONF)
         self.opt(admin_token='ADMINADMINADMIN')
         req.headers[middleware.AUTH_TOKEN_HEADER] = 'ADMINADMINADMIN'
-        middleware.AdminTokenAuthMiddleware(None).process_request(req)
+        _middleware.process_request(req)
         context = req.environ[middleware.CONTEXT_ENV]
         self.assertTrue(context['is_admin'])
 
     def test_request_non_admin(self):
         req = make_request()
+        _middleware = middleware.AdminTokenAuthMiddleware(None, CONF)
         self.opt(admin_token='ADMINADMINADMIN')
         req.headers[middleware.AUTH_TOKEN_HEADER] = 'NOTADMINNOTADMINNOTADMIN'
-        middleware.AdminTokenAuthMiddleware(None).process_request(req)
+        _middleware.process_request(req)
         context = req.environ[middleware.CONTEXT_ENV]
         self.assertFalse(context['is_admin'])
 
@@ -60,7 +66,7 @@ class AdminTokenAuthMiddlewareTest(test.TestCase):
 class PostParamsMiddlewareTest(test.TestCase):
     def test_request_with_params(self):
         req = make_request(body="arg1=one", method='POST')
-        middleware.PostParamsMiddleware(None).process_request(req)
+        middleware.PostParamsMiddleware(None, CONF).process_request(req)
         params = req.environ[middleware.PARAMS_ENV]
         self.assertEqual(params, {"arg1": "one"})
 
@@ -70,7 +76,7 @@ class JsonBodyMiddlewareTest(test.TestCase):
         req = make_request(body='{"arg1": "one", "arg2": ["a"]}',
                            content_type='application/json',
                            method='POST')
-        middleware.JsonBodyMiddleware(None).process_request(req)
+        middleware.JsonBodyMiddleware(None, CONF).process_request(req)
         params = req.environ[middleware.PARAMS_ENV]
         self.assertEqual(params, {"arg1": "one", "arg2": ["a"]})
 
@@ -78,13 +84,13 @@ class JsonBodyMiddlewareTest(test.TestCase):
         req = make_request(body='{"arg1": "on',
                            content_type='application/json',
                            method='POST')
-        _middleware = middleware.JsonBodyMiddleware(None)
+        _middleware = middleware.JsonBodyMiddleware(None, CONF)
         self.assertRaises(webob.exc.HTTPBadRequest,
                           _middleware.process_request, req)
 
     def test_no_content_type(self):
         req = make_request(body='{"arg1": "one", "arg2": ["a"]}', method='POST')
-        middleware.JsonBodyMiddleware(None).process_request(req)
+        middleware.JsonBodyMiddleware(None, CONF).process_request(req)
         params = req.environ[middleware.PARAMS_ENV]
         self.assertEqual(params, {"arg1": "one", "arg2": ["a"]})
 
@@ -92,6 +98,6 @@ class JsonBodyMiddlewareTest(test.TestCase):
         req = make_request(body='{"arg1": "one", "arg2": ["a"]}',
                            content_type='text/plain',
                            method='POST')
-        middleware.JsonBodyMiddleware(None).process_request(req)
+        middleware.JsonBodyMiddleware(None, CONF).process_request(req)
         params = req.environ.get(middleware.PARAMS_ENV, {})
         self.assertEqual(params, {})

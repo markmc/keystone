@@ -44,8 +44,8 @@ class Manager(manager.Manager):
 
 
 class ServiceController(wsgi.Application):
-    def __init__(self):
-        self.catalog_api = Manager(config.CONF)
+    def __init__(self, conf):
+        self.catalog_api = Manager(conf)
         super(ServiceController, self).__init__()
 
     # CRUD extensions

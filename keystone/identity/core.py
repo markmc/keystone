@@ -23,7 +23,6 @@ import urlparse
 import webob.exc
 
 from keystone import catalog
-from keystone import config
 from keystone import exception
 from keystone import policy
 from keystone import token
@@ -199,7 +198,7 @@ class Driver(object):
 
 class PublicRouter(wsgi.ComposableRouter):
     def add_routes(self, mapper):
-        tenant_controller = TenantController()
+        tenant_controller = TenantController(self.conf)
         mapper.connect('/tenants',
                        controller=tenant_controller,
                        action='get_tenants_for_token',
@@ -209,7 +208,7 @@ class PublicRouter(wsgi.ComposableRouter):
 class AdminRouter(wsgi.ComposableRouter):
     def add_routes(self, mapper):
         # Tenant Operations
-        tenant_controller = TenantController()
+        tenant_controller = TenantController(self.conf)
         mapper.connect('/tenants',
                        controller=tenant_controller,
                        action='get_all_tenants',
@@ -220,14 +219,14 @@ class AdminRouter(wsgi.ComposableRouter):
                        conditions=dict(method=['GET']))
 
         # User Operations
-        user_controller = UserController()
+        user_controller = UserController(self.conf)
         mapper.connect('/users/{user_id}',
                        controller=user_controller,
                        action='get_user',
                        conditions=dict(method=['GET']))
 
         # Role Operations
-        roles_controller = RoleController()
+        roles_controller = RoleController(self.conf)
         mapper.connect('/tenants/{tenant_id}/users/{user_id}/roles',
                        controller=roles_controller,
                        action='get_user_roles',
@@ -239,10 +238,10 @@ class AdminRouter(wsgi.ComposableRouter):
 
 
 class TenantController(wsgi.Application):
-    def __init__(self):
-        self.identity_api = Manager(config.CONF)
-        self.policy_api = policy.Manager(config.CONF)
-        self.token_api = token.Manager(config.CONF)
+    def __init__(self, conf):
+        self.identity_api = Manager(conf)
+        self.policy_api = policy.Manager(conf)
+        self.token_api = token.Manager(conf)
         super(TenantController, self).__init__()
 
     def get_all_tenants(self, context, **kw):
@@ -352,11 +351,11 @@ class TenantController(wsgi.Application):
 
 
 class UserController(wsgi.Application):
-    def __init__(self):
-        self.catalog_api = catalog.Manager(config.CONF)
-        self.identity_api = Manager(config.CONF)
-        self.policy_api = policy.Manager(config.CONF)
-        self.token_api = token.Manager(config.CONF)
+    def __init__(self, conf):
+        self.catalog_api = catalog.Manager(conf)
+        self.identity_api = Manager(conf)
+        self.policy_api = policy.Manager(conf)
+        self.token_api = token.Manager(conf)
         super(UserController, self).__init__()
 
     def get_user(self, context, user_id):
@@ -412,11 +411,11 @@ class UserController(wsgi.Application):
 
 
 class RoleController(wsgi.Application):
-    def __init__(self):
-        self.catalog_api = catalog.Manager(config.CONF)
-        self.identity_api = Manager(config.CONF)
-        self.token_api = token.Manager(config.CONF)
-        self.policy_api = policy.Manager(config.CONF)
+    def __init__(self, conf):
+        self.catalog_api = catalog.Manager(conf)
+        self.identity_api = Manager(conf)
+        self.token_api = token.Manager(conf)
+        self.policy_api = policy.Manager(conf)
         super(RoleController, self).__init__()
 
     # COMPAT(essex-3)

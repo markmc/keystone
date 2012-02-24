@@ -2,7 +2,6 @@
 
 import functools
 
-from keystone import config
 from keystone.common import utils
 
 

@@ -59,11 +59,8 @@ def safe_iter(attrs):
 
 
 class BaseLdap(object):
-    DEFAULT_SUFFIX = "dc=example,dc=com"
-    DEFAULT_OU = None
     DEFAULT_STRUCTURAL_CLASSES = None
     DEFAULT_ID_ATTR = 'cn'
-    DEFAULT_OBJECTCLASS = None
     DUMB_MEMBER_DN = 'cn=dumb,dc=nonexistent'
     options_name = None
     model = None
@@ -79,18 +76,13 @@ class BaseLdap(object):
 
         if self.options_name is not None:
             self.suffix = conf.ldap.suffix
-            if (self.suffix == None):
-                self.suffix = self.DEFAULT_SUFFIX
-            dn = '%s_tree_dn' % self.options_name
-            self.tree_dn = (getattr(conf.ldap, dn)
-                            or '%s,%s' % (self.suffix, self.DEFAULT_OU))
 
-            idatt = '%s_id_attribute' % self.options_name
-            self.id_attr = getattr(conf.ldap, idatt) or self.DEFAULT_ID_ATTR
-
-            objclass = '%s_objectclass' % self.options_name
-            self.object_class = (getattr(conf.ldap, objclass)
-                                 or self.DEFAULT_OBJECTCLASS)
+            self.tree_dn = getattr(conf.ldap,
+                                   '%s_tree_dn' % self.options_name)
+            self.id_attr = getattr(conf.ldap,
+                                   '%s_id_attribute' % self.options_name)
+            self.object_class = getattr(conf.ldap,
+                                        '%s_objectclass' % self.options_name)
 
             self.structural_classes = self.DEFAULT_STRUCTURAL_CLASSES
         self.use_dumb_member = getattr(conf.ldap, 'use_dumb_member') or True

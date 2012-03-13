@@ -26,22 +26,23 @@ from keystone.common import utils
 from keystone.openstack.common import cfg
 
 
-CONF = config.CONF
-servers_opt = cfg.StrOpt('servers', default='localhost:11211')
-CONF.register_group(cfg.OptGroup('memcache'))
-CONF.register_opt(servers_opt, group='memcache')
-
-
 class Token(token.Driver):
+
+    opt_group = cfg.OptGroup('memcache')
+    servers_opt = cfg.StrOpt('servers', default='localhost:11211')
+
     def __init__(self, client=None):
         self._memcache_client = client
+
+        config.CONF.register_group(self.opt_group)
+        config.CONF.register_opt(self.servers_opt, group='memcache')
 
     @property
     def client(self):
         return self._memcache_client or self._get_memcache_client()
 
     def _get_memcache_client(self):
-        memcache_servers = CONF.memcache.servers.split(',')
+        memcache_servers = config.CONF.memcache.servers.split(',')
         self._memcache_client = memcache.Client(memcache_servers, debug=0)
         return self._memcache_client
 

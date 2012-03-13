@@ -17,12 +17,14 @@
 from keystone import config
 from keystone.common import logging
 from keystone.catalog.backends import kvs
+from keystone.openstack.common import cfg
 
 
 LOG = logging.getLogger(__name__)
 
 CONF = config.CONF
-config.register_str('template_file', group='catalog')
+template_opt = cfg.StrOpt('template_file')
+CONF.register_opt(template_opt, group='catalog')
 
 
 def parse_templates(template_lines):

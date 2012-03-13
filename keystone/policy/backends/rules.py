@@ -26,81 +26,92 @@ from keystone.common import utils
 from keystone.openstack.common import cfg
 
 
-policy_opts = [
-    cfg.StrOpt('policy_file',
-               default='policy.json',
-               help=_('JSON file representing policy')),
-    cfg.StrOpt('policy_default_rule',
-               default='default',
-               help=_('Rule checked when requested rule is not found')),
-    ]
-
-
-CONF = config.CONF
-CONF.register_opts(policy_opts)
-
-
 LOG = logging.getLogger(__name__)
 
-
-_POLICY_PATH = None
-_POLICY_CACHE = {}
+_POLICY_CACHE = None
 
 
-def reset():
-    global _POLICY_PATH
+def reset_policy_cache():
     global _POLICY_CACHE
-    _POLICY_PATH = None
-    _POLICY_CACHE = {}
-    common_policy.reset()
+    if not _POLICY_CACHE:
+        _POLICY_CACHE = PolicyCache()
+    else:
+        _POLICY_CACHE.reset()
 
 
-def init():
-    global _POLICY_PATH
+def load_policy(policy_file, reload_func=None):
     global _POLICY_CACHE
-    if not _POLICY_PATH:
-        _POLICY_PATH = utils.find_config(CONF.policy_file)
-    utils.read_cached_file(_POLICY_PATH,
-                           _POLICY_CACHE,
-                           reload_func=_set_brain)
+    _POLICY_CACHE.load(policy_file, reload_func)
 
 
-def _set_brain(data):
-    default_rule = CONF.policy_default_rule
-    common_policy.set_brain(
-            common_policy.HttpBrain.load_json(data, default_rule))
+class PolicyCache(object):
 
+    def __init__(self):
+        self.reset()
 
-def enforce(credentials, action, target):
-    """Verifies that the action is valid on the target in this context.
+    def reset(self):
+        self._policy_path = None
+        self._cache = {}
 
-       :param credentials: user credentials
-       :param action: string representing the action to be checked
-
-           this should be colon separated for clarity.
-           i.e. compute:create_instance
-                compute:attach_volume
-                volume:attach_volume
-
-       :param object: dictionary representing the object of the action
-                      for object creation this should be a dictionary
-                      representing the location of the object e.g.
-                      {'tenant_id': object.tenant_id}
-
-       :raises: `exception.Forbidden` if verification fails.
-
-    """
-    init()
-
-    match_list = ('rule:%s' % action,)
-
-    try:
-        common_policy.enforce(match_list, target, credentials)
-    except common_policy.NotAuthorized:
-        raise exception.ForbiddenAction(action=action)
+    def load(self, policy_file, reload_func=None):
+        if not self._policy_path:
+            self._policy_path = utils.find_config(policy_file)
+        utils.read_cached_file(self._policy_path,
+                               self._cache,
+                               reload_func=reload_func)
 
 
 class Policy(policy.Driver):
+
+    policy_opts = [
+        cfg.StrOpt('policy_file',
+                   default='policy.json',
+                   help=_('JSON file representing policy')),
+        cfg.StrOpt('policy_default_rule',
+                   default='default',
+                   help=_('Rule checked when requested rule is not found')),
+        ]
+
+    def __init__(self):
+        super(Policy, self).__init__()
+        self.conf = config.CONF
+        self.conf.register_opts(self.policy_opts)
+        self.reset()
+
+    def reset(self):
+        reset_policy_cache()
+        common_policy.reset()
+
+    def _set_brain(self, data):
+        default_rule = self.conf.policy_default_rule
+        common_policy.set_brain(
+            common_policy.HttpBrain.load_json(data, default_rule))
+
     def enforce(self, credentials, action, target):
+        """Verifies that the action is valid on the target in this context.
+
+           :param credentials: user credentials
+           :param action: string representing the action to be checked
+               this should be colon separated for clarity.
+               i.e. compute:create_instance
+                    compute:attach_volume
+                    volume:attach_volume
+
+           :param object: dictionary representing the object of the action
+                          for object creation this should be a dictionary
+                          representing the location of the object e.g.
+                          {'tenant_id': object.tenant_id}
+
+           :raises: `exception.Forbidden` if verification fails.
+
+        """
         LOG.debug('enforce %s: %s', action, credentials)
-        enforce(credentials, action, target)
+
+        load_policy(self.conf.policy_file, reload_func=self._set_brain)
+
+        match_list = ('rule:%s' % action,)
+
+        try:
+            common_policy.enforce(match_list, target, credentials)
+        except common_policy.NotAuthorized:
+            raise exception.ForbiddenAction(action=action)

@@ -104,32 +104,6 @@ global_opts = [
 
 CONF.register_opts(global_opts)
 
-ldap_opts = [
-    cfg.StrOpt('url'),
-    cfg.StrOpt('user'),
-    cfg.StrOpt('password'),
-    cfg.StrOpt('suffix'),
-    cfg.BoolOpt('use_dumb_member'),
-
-    cfg.StrOpt('user_tree_dn'),
-    cfg.StrOpt('user_objectclass'),
-    cfg.StrOpt('user_id_attribute'),
-
-    cfg.StrOpt('tenant_tree_dn'),
-    cfg.StrOpt('tenant_objectclass'),
-    cfg.StrOpt('tenant_id_attribute'),
-    cfg.StrOpt('tenant_member_attribute'),
-
-
-    cfg.StrOpt('role_tree_dn'),
-    cfg.StrOpt('role_objectclass'),
-    cfg.StrOpt('role_id_attribute'),
-    cfg.StrOpt('role_member_attribute'),
-    ]
-
-CONF.register_group(cfg.OptGroup('ldap'))
-CONF.register_opts(ldap_opts, group='ldap')
-
 for backend in ['catalog', 'identity', 'policy', 'token', 'ec2']:
     CONF.register_group(cfg.OptGroup(backend))
     CONF.register_opt(cfg.StrOpt('driver'), group=backend)

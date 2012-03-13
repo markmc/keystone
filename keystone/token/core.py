@@ -18,7 +18,6 @@
 
 import datetime
 
-from keystone import config
 from keystone import exception
 from keystone.common import manager
 from keystone.openstack.common import cfg
@@ -44,6 +43,11 @@ class Driver(object):
     """Interface description for a Token driver."""
 
     expiration_opt = cfg.IntOpt('expiration', default=86400)
+
+    def __init__(self, conf):
+        self.conf = conf
+        self.conf.register_group(Manager.opt_group)
+        self.conf.register_opt(self.expiration_opt, group='token')
 
     def get_token(self, token_id):
         """Get a token by id.
@@ -96,7 +100,5 @@ class Driver(object):
         :returns: a naive utc datetime.datetime object
 
         """
-        config.CONF.register_group(Manager.opt_group)
-        config.CONF.register_opt(self.expiration_opt, group='token')
-        expire_delta = datetime.timedelta(seconds=config.CONF.token.expiration)
+        expire_delta = datetime.timedelta(seconds=self.conf.token.expiration)
         return datetime.datetime.utcnow() + expire_delta

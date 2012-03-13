@@ -34,7 +34,7 @@ class SqlIdentity(test.TestCase, test_backend.IdentityTests):
                            test.testsdir('test_overrides.conf'),
                            test.testsdir('backend_sql.conf')])
         sql_util.setup_test_database(CONF)
-        self.identity_api = identity_sql.Identity()
+        self.identity_api = identity_sql.Identity(CONF)
         self.load_fixtures(default_fixtures)
 
     def test_delete_user_with_tenant_association(self):
@@ -56,7 +56,7 @@ class SqlToken(test.TestCase, test_backend.TokenTests):
                            test.testsdir('test_overrides.conf'),
                            test.testsdir('backend_sql.conf')])
         sql_util.setup_test_database(CONF)
-        self.token_api = token_sql.Token()
+        self.token_api = token_sql.Token(CONF)
 
 
 #class SqlCatalog(test_backend_kvs.KvsCatalog):

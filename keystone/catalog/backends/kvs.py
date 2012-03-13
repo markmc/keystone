@@ -21,6 +21,11 @@ from keystone.common import kvs
 
 
 class Catalog(kvs.Base, catalog.Driver):
+
+    def __init__(self, conf, db=None):
+        kvs.Base.__init__(self, db)
+        catalog.Driver.__init__(self, conf)
+
     # Public interface
     def get_catalog(self, user_id, tenant_id, metadata=None):
         return self.db.get('catalog-%s-%s' % (tenant_id, user_id))

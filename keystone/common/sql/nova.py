@@ -26,8 +26,8 @@ from keystone.identity.backends import sql as identity_sql
 LOG = logging.getLogger(__name__)
 
 
-def import_auth(data):
-    identity_api = identity_sql.Identity()
+def import_auth(conf, data):
+    identity_api = identity_sql.Identity(conf)
     tenant_map = _create_tenants(identity_api, data['tenants'])
     user_map = _create_users(identity_api, data['users'])
     _create_memberships(identity_api, data['user_tenant_list'],
@@ -36,7 +36,7 @@ def import_auth(data):
     _assign_roles(identity_api, data['role_user_tenant_list'],
                   role_map, user_map, tenant_map)
 
-    ec2_api = ec2_sql.Ec2()
+    ec2_api = ec2_sql.Ec2(conf)
     ec2_creds = data['ec2_credentials']
     _create_ec2_creds(ec2_api, identity_api, ec2_creds, user_map)
 

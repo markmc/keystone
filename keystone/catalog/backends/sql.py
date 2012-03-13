@@ -75,6 +75,11 @@ class Endpoint(sql.ModelBase, sql.DictBase):
 
 
 class Catalog(sql.Base, catalog.Driver):
+
+    def __init__(self, conf):
+        catalog.Driver.__init__(self, conf)
+        self.conf = conf
+
     def db_sync(self):
         migration.db_sync()
 
@@ -139,7 +144,7 @@ class Catalog(sql.Base, catalog.Driver):
         return [e['id'] for e in list(endpoints)]
 
     def get_catalog(self, user_id, tenant_id, metadata=None):
-        d = dict(config.CONF.iteritems())
+        d = dict(self.conf.iteritems())
         d.update({'tenant_id': tenant_id,
                   'user_id': user_id})
         catalog = {}

@@ -58,6 +58,9 @@ class PamIdentity(identity.Driver):
     Tenant is always the same as User, root user has admin role.
     """
 
+    def __init__(self, conf):
+        pass
+
     def authenticate(self, user_id, tenant_id, password):
         auth = pam.authenticate if pam else PAM_authenticate
         if auth(user_id, password):

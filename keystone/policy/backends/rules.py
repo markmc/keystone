@@ -72,9 +72,8 @@ class Policy(policy.Driver):
                    help=_('Rule checked when requested rule is not found')),
         ]
 
-    def __init__(self):
-        super(Policy, self).__init__()
-        self.conf = config.CONF
+    def __init__(self, conf):
+        super(Policy, self).__init__(conf)
         self.conf.register_opts(self.policy_opts)
         self.reset()
 

@@ -31,13 +31,6 @@ def _filter_user(user_ref):
     return user_ref
 
 
-def _ensure_hashed_password(user_ref):
-    pw = user_ref.get('password', None)
-    if pw is not None:
-        user_ref['password'] = passwd.hash_password(config.CONF, pw)
-    return user_ref
-
-
 def handle_conflicts(type='object'):
     """Converts IntegrityError into HTTP 409 Conflict."""
     def decorator(method):
@@ -131,9 +124,14 @@ class UserTenantMembership(sql.ModelBase, sql.DictBase):
 
 
 class Identity(sql.Base, identity.Driver):
+
+    def __init__(self, conf):
+        sql.Base.__init__(self)
+        identity.Driver.__init__(self, conf)
+
     # Internal interface to manage the database
-    def db_sync(self, conf):
-        migration.db_sync(conf)
+    def db_sync(self):
+        migration.db_sync(self.conf)
 
     # Identity interface
     def authenticate(self, user_id=None, tenant_id=None, password=None):
@@ -298,10 +296,16 @@ class Identity(sql.Base, identity.Driver):
         else:
             self.create_metadata(user_id, tenant_id, metadata_ref)
 
+    def _ensure_hashed_password(self, user_ref):
+        pw = user_ref.get('password', None)
+        if pw is not None:
+            user_ref['password'] = passwd.hash_password(self.conf, pw)
+        return user_ref
+
     # CRUD
     @handle_conflicts(type='user')
     def create_user(self, user_id, user):
-        user = _ensure_hashed_password(user)
+        user = self._ensure_hashed_password(user)
         session = self.get_session()
         with session.begin():
             user_ref = User.from_dict(user)
@@ -315,7 +319,7 @@ class Identity(sql.Base, identity.Driver):
         with session.begin():
             user_ref = session.query(User).filter_by(id=user_id).first()
             old_user_dict = user_ref.to_dict()
-            user = _ensure_hashed_password(user)
+            user = self._ensure_hashed_password(user)
             for k in user:
                 old_user_dict[k] = user[k]
             new_user = User.from_dict(old_user_dict)

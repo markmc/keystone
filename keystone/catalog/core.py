@@ -48,6 +48,10 @@ class Manager(manager.Manager):
 
 class Driver(object):
     """Interface description for an Catalog driver."""
+
+    def __init__(self, conf):
+        self.conf = conf
+
     def list_services(self):
         """List all service ids in catalog.
 

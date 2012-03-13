@@ -55,7 +55,7 @@ class DbSync(BaseApp):
             name = 'keystone.%s.core.Manager' % k
             manager = utils.import_object(name, CONF)
             if hasattr(manager.driver, 'db_sync'):
-                manager.driver.db_sync(CONF)
+                manager.driver.db_sync()
 
 
 class ImportLegacy(BaseApp):
@@ -106,7 +106,7 @@ class ImportNovaAuth(BaseApp):
             return self.missing_param('dump_file')
         dump_file = self.argv[1]
         dump_data = json.loads(open(dump_file).read())
-        nova.import_auth(dump_data)
+        nova.import_auth(CONF, dump_data)
 
 
 CMDS = {'db_sync': DbSync,

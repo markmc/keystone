@@ -37,7 +37,6 @@ ROOTDIR = os.path.dirname(os.path.dirname(__file__))
 VENDOR = os.path.join(ROOTDIR, 'vendor')
 TESTSDIR = os.path.join(ROOTDIR, 'tests')
 ETCDIR = os.path.join(ROOTDIR, 'etc')
-CONF = config.CONF
 
 
 cd = os.chdir
@@ -122,6 +121,7 @@ class TestCase(unittest.TestCase):
         super(TestCase, self).__init__(*args, **kw)
         self._paths = []
         self._memo = {}
+        self.conf = config.CONF
         self._overrides = []
 
     def setUp(self):
@@ -131,8 +131,8 @@ class TestCase(unittest.TestCase):
         self.stubs = stubout.StubOutForTesting()
 
     def config(self):
-        CONF(config_files=[etcdir('keystone.conf'),
-                           testsdir('test_overrides.conf')])
+        self.conf(config_files=[etcdir('keystone.conf'),
+                                testsdir('test_overrides.conf')])
 
     def tearDown(self):
         try:
@@ -150,19 +150,19 @@ class TestCase(unittest.TestCase):
 
     def opt(self, **kw):
         for k, v in kw.iteritems():
-            CONF.set_override(k, v)
+            self.conf.set_override(k, v)
         self._overrides.append(k)
 
     def reset_opts(self):
         for k in self._overrides:
-            CONF.set_override(k, None)
+            self.conf.set_override(k, None)
         self._overrides = []
-        CONF.reset()
+        self.conf.reset()
 
     def load_backends(self):
         """Hacky shortcut to load the backends for data manipulation."""
-        self.identity_api = identity.Manager(CONF).driver
-        self.token_api = token.Manager(CONF).driver
+        self.identity_api = identity.Manager(self.conf).driver
+        self.token_api = token.Manager(self.conf).driver
 
     def load_fixtures(self, fixtures):
         """Hacky basic and naive fixture loading based on a python module.
@@ -224,7 +224,7 @@ class TestCase(unittest.TestCase):
 
         # Service catalog tests need to know the port we ran on.
         port = server.socket_info['socket'][1]
-        wsgi.register_opts(CONF)
+        wsgi.register_opts(self.conf)
         self.opt(public_port=port, admin_port=port)
         return server
 

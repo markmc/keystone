@@ -19,7 +19,6 @@ import os
 import sqlite3
 #import sqlalchemy
 
-from keystone import config
 from keystone import test
 from keystone.common.sql import legacy
 from keystone.common.sql import util as sql_util
@@ -28,18 +27,14 @@ from keystone.token.backends import sql as token_sql
 from keystone.catalog.backends import templated as catalog_templated
 
 
-
-CONF = config.CONF
-
-
 class ImportLegacy(test.TestCase):
     def setUp(self):
         super(ImportLegacy, self).setUp()
-        CONF(config_files=[test.etcdir('keystone.conf'),
-                           test.testsdir('test_overrides.conf'),
-                           test.testsdir('backend_sql.conf')])
-        sql_util.setup_test_database(CONF)
-        self.identity_api = identity_sql.Identity(CONF)
+        self.conf(config_files=[test.etcdir('keystone.conf'),
+                                test.testsdir('test_overrides.conf'),
+                                test.testsdir('backend_sql.conf')])
+        sql_util.setup_test_database(self.conf)
+        self.identity_api = identity_sql.Identity(self.conf)
 
     def setup_old_database(self, sql_dump):
         sql_path = test.testsdir(sql_dump)
@@ -56,7 +51,7 @@ class ImportLegacy(test.TestCase):
 
     def test_import_d5(self):
         db_path = self.setup_old_database('legacy_d5.sqlite')
-        migration = legacy.LegacyMigration('sqlite:///%s' % db_path)
+        migration = legacy.LegacyMigration(self.conf, 'sqlite:///%s' % db_path)
         migration.migrate_all()
 
         admin_id = '1'
@@ -73,7 +68,7 @@ class ImportLegacy(test.TestCase):
 
     def test_import_diablo(self):
         db_path = self.setup_old_database('legacy_diablo.sqlite')
-        migration = legacy.LegacyMigration('sqlite:///%s' % db_path)
+        migration = legacy.LegacyMigration(self.conf, 'sqlite:///%s' % db_path)
         migration.migrate_all()
 
         admin_id = '1'
@@ -90,7 +85,7 @@ class ImportLegacy(test.TestCase):
 
     def test_import_essex(self):
         db_path = self.setup_old_database('legacy_essex.sqlite')
-        migration = legacy.LegacyMigration('sqlite:///%s' % db_path)
+        migration = legacy.LegacyMigration(self.conf, 'sqlite:///%s' % db_path)
         migration.migrate_all()
 
         admin_id = 'c93b19ea3fa94484824213db8ac0afce'

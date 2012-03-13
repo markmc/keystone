@@ -16,13 +16,9 @@
 
 from keystone.common.sql import nova
 from keystone.common.sql import util as sql_util
-from keystone import config
 from keystone.contrib.ec2.backends import sql as ec2_sql
 from keystone.identity.backends import sql as identity_sql
 from keystone import test
-
-
-CONF = config.CONF
 
 
 FIXTURE = {
@@ -66,15 +62,15 @@ FIXTURE = {
 class MigrateNovaAuth(test.TestCase):
     def setUp(self):
         super(MigrateNovaAuth, self).setUp()
-        CONF(config_files=[test.etcdir('keystone.conf'),
-                           test.testsdir('test_overrides.conf'),
-                           test.testsdir('backend_sql.conf')])
-        sql_util.setup_test_database(CONF)
-        self.identity_api = identity_sql.Identity(CONF)
-        self.ec2_api = ec2_sql.Ec2(CONF)
+        self.conf(config_files=[test.etcdir('keystone.conf'),
+                                test.testsdir('test_overrides.conf'),
+                                test.testsdir('backend_sql.conf')])
+        sql_util.setup_test_database(self.conf)
+        self.identity_api = identity_sql.Identity(self.conf)
+        self.ec2_api = ec2_sql.Ec2(self.conf)
 
     def test_import(self):
-        nova.import_auth(CONF, FIXTURE)
+        nova.import_auth(self.conf, FIXTURE)
 
         users = {}
         for user in ['user1', 'user2', 'user3', 'user4']:

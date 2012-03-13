@@ -19,7 +19,6 @@ import StringIO
 import tempfile
 import urllib2
 
-from keystone import config
 from keystone import exception
 from keystone import test
 from keystone.common import policy as common_policy
@@ -29,7 +28,7 @@ from keystone.policy.backends import rules
 class PolicyFileTestCase(test.TestCase):
     def setUp(self):
         super(PolicyFileTestCase, self).setUp()
-        self.rules = rules.Policy(config.CONF)
+        self.rules = rules.Policy(self.conf)
         _unused, self.tmpfilename = tempfile.mkstemp()
         self.opt(policy_file=self.tmpfilename)
         self.target = {}
@@ -51,7 +50,7 @@ class PolicyFileTestCase(test.TestCase):
 class PolicyTestCase(test.TestCase):
     def setUp(self):
         super(PolicyTestCase, self).setUp()
-        self.rules = rules.Policy(config.CONF)
+        self.rules = rules.Policy(self.conf)
         # NOTE(vish): circumvent loading from file
         self.stubs.Set(rules, 'load_policy', lambda *a, **kw: None)
         brain = {
@@ -137,7 +136,7 @@ class PolicyTestCase(test.TestCase):
 class DefaultPolicyTestCase(test.TestCase):
     def setUp(self):
         super(DefaultPolicyTestCase, self).setUp()
-        self.rules = rules.Policy(config.CONF)
+        self.rules = rules.Policy(self.conf)
         self.stubs.Set(rules, 'load_policy', lambda *a, **kw: None)
 
         self.brain = {

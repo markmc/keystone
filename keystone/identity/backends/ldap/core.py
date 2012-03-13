@@ -23,7 +23,7 @@ from keystone import config
 from keystone import exception
 from keystone import identity
 from keystone.common import ldap as common_ldap
-from keystone.common import utils
+from keystone.common import passwd
 from keystone.common.ldap import fakeldap
 from keystone.identity import models
 
@@ -40,7 +40,7 @@ def _filter_user(user_ref):
 def _ensure_hashed_password(user_ref):
     pw = user_ref.get('password', None)
     if pw is not None:
-        pw = utils.ldap_hash_password(pw)
+        pw = passwd.ldap_hash_password(pw)
         user_ref['password'] = pw
     return user_ref
 
@@ -359,7 +359,7 @@ class UserApi(common_ldap.BaseLdap, ApiShimMixin):
 
     def check_password(self, user_id, password):
         user = self.get(user_id)
-        return utils.check_password(password, user.password)
+        return passwd.check_password(password, user.password)
 
 
 # TODO(termie): turn this into a data object and move logic to driver

@@ -30,7 +30,7 @@ import shelve
 import ldap
 
 from keystone.common import logging
-from keystone.common import utils
+from keystone.common import passwd
 
 
 SCOPE_NAMES = {
@@ -172,7 +172,7 @@ class FakeLdap(object):
             LOG.error('FakeLdap bind fail: password for dn=%s not found', dn)
             raise ldap.INAPPROPRIATE_AUTH
 
-        if not utils.ldap_check_password(password, db_password):
+        if not passwd.ldap_check_password(password, db_password):
             LOG.error('FakeLdap bind fail: password for dn=%s does'
                       ' not match' % dn)
             raise ldap.INVALID_CREDENTIALS

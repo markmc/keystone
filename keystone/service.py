@@ -21,7 +21,6 @@ import webob.dec
 import webob.exc
 
 from keystone import catalog
-from keystone import config
 from keystone import exception
 from keystone import identity
 from keystone import policy
@@ -548,23 +547,3 @@ class AdminExtensionsController(ExtensionsController):
                 }
             ]
         }
-
-
-@logging.fail_gracefully
-def public_app_factory(global_conf, **local_conf):
-    return PublicRouter(config.CONF)
-
-
-@logging.fail_gracefully
-def admin_app_factory(global_conf, **local_conf):
-    return AdminRouter(config.CONF)
-
-
-@logging.fail_gracefully
-def public_version_app_factory(global_conf, **local_conf):
-    return PublicVersionRouter(config.CONF)
-
-
-@logging.fail_gracefully
-def admin_version_app_factory(global_conf, **local_conf):
-    return AdminVersionRouter(config.CONF)

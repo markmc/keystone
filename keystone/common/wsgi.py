@@ -27,6 +27,7 @@ import sys
 import eventlet
 import eventlet.wsgi
 eventlet.patcher.monkey_patch(all=False, socket=True, time=True)
+from paste import deploy
 import routes
 import routes.middleware
 import webob
@@ -107,31 +108,6 @@ class Request(webob.Request):
 
 class BaseApplication(object):
     """Base WSGI application wrapper. Subclasses need to implement __call__."""
-
-    @classmethod
-    def factory(cls, global_config, **local_config):
-        """Used for paste app factories in paste.deploy config files.
-
-        Any local configuration (that is, values under the [app:APPNAME]
-        section of the paste config) will be passed into the `__init__` method
-        as kwargs.
-
-        A hypothetical configuration would look like:
-
-            [app:wadl]
-            latest_version = 1.3
-            paste.app_factory = nova.api.fancy_api:Wadl.factory
-
-        which would result in a call to the `Wadl` class as
-
-            import nova.api.fancy_api
-            fancy_api.Wadl(latest_version='1.3')
-
-        You could of course re-implement the `factory` method in subclasses,
-        but using the kwarg passing it shouldn't be necessary.
-
-        """
-        return cls()
 
     def __call__(self, environ, start_response):
         r"""Subclasses will probably want to implement __call__ like this:
@@ -242,35 +218,6 @@ class Middleware(Application):
     behavior.
 
     """
-
-    @classmethod
-    def factory(cls, global_config, **local_config):
-        """Used for paste app factories in paste.deploy config files.
-
-        Any local configuration (that is, values under the [filter:APPNAME]
-        section of the paste config) will be passed into the `__init__` method
-        as kwargs.
-
-        A hypothetical configuration would look like:
-
-            [filter:analytics]
-            redis_host = 127.0.0.1
-            paste.filter_factory = nova.api.analytics:Analytics.factory
-
-        which would result in a call to the `Analytics` class as
-
-            import nova.api.analytics
-            analytics.Analytics(app_from_paste, redis_host='127.0.0.1')
-
-        You could of course re-implement the `factory` method in subclasses,
-        but using the kwarg passing it shouldn't be necessary.
-
-        """
-        def _factory(app):
-            conf = global_config.copy()
-            conf.update(local_config)
-            return cls(app, config.CONF)
-        return _factory
 
     def __init__(self, application, conf):
         self.application = application
@@ -441,34 +388,142 @@ class ExtensionRouter(Router):
     def add_routes(self, mapper):
         pass
 
-    @classmethod
-    def factory(cls, global_config, **local_config):
-        """Used for paste app factories in paste.deploy config files.
 
-        Any local configuration (that is, values under the [filter:APPNAME]
-        section of the paste config) will be passed into the `__init__` method
-        as kwargs.
+class BasePasteFactory(object):
 
-        A hypothetical configuration would look like:
+    """A base class for paste app and filter factories.
 
-            [filter:analytics]
-            redis_host = 127.0.0.1
-            paste.filter_factory = nova.api.analytics:Analytics.factory
+    Sub-classes must override the KEY class attribute and provide
+    a __call__ method.
+    """
 
-        which would result in a call to the `Analytics` class as
+    KEY = None
 
-            import nova.api.analytics
-            analytics.Analytics(app_from_paste, redis_host='127.0.0.1')
+    def __init__(self, conf):
+        self.conf = conf
 
-        You could of course re-implement the `factory` method in subclasses,
-        but using the kwarg passing it shouldn't be necessary.
+    def __call__(self, global_conf, **local_conf):
+        raise NotImplementedError
 
+    def _import_factory(self, local_conf):
+        """Import an app/filter class.
+
+        Lookup the KEY from the PasteDeploy local conf and import the
+        class named there. This class can then be used as an app or
+        filter factory.
+
+        Note we support the <module>:<class> format.
+
+        Note also that if you do e.g.
+
+          key =
+              value
+
+        then ConfigParser returns a value with a leading newline, so
+        we strip() the value before using it.
         """
-        def _factory(app):
-            conf = global_config.copy()
-            conf.update(local_config)
-            return cls(app, config.CONF)
-        return _factory
+        class_name = local_conf[self.KEY].replace(':', '.').strip()
+        return utils.import_class(class_name)
+
+
+class AppFactory(BasePasteFactory):
+
+    """A Generic paste.deploy app factory.
+
+    This requires keystone.app_factory to be set to a callable which returns a
+    WSGI app when invoked. The format of the name is <module>:<callable> e.g.
+
+      [app:public_service]
+      paste.app_factory = keystone.common.wsgi:app_factory
+      keystone.app_factory = keystone.service:PublicRouter
+
+    The WSGI app constructor must accept a ConfigOpts object as its only
+    argument.
+    """
+
+    KEY = 'keystone.app_factory'
+
+    @logging.fail_gracefully
+    def __call__(self, global_conf, **local_conf):
+        """The actual paste.app_factory protocol method."""
+        factory = self._import_factory(local_conf)
+        return factory(self.conf)
+
+
+class FilterFactory(AppFactory):
+
+    """A Generic paste.deploy filter factory.
+
+    This requires keystone.filter_factory to be set to a callable which returns
+    a WSGI filter when invoked. The format is <module>:<callable> e.g.
+
+      [filter:debug]
+      paste.filter_factory = keystone.common.wsgi:filter_factory
+      keystone.filter_factory = keystone.common.wsgi:Debug
+
+    The WSGI filter constructor must accept a WSGI app and a ConfigOpts object
+    as its two arguments.
+    """
+
+    KEY = 'keystone.filter_factory'
+
+    def __call__(self, global_conf, **local_conf):
+        """The actual paste.filter_factory protocol method."""
+        factory = self._import_factory(local_conf)
+
+        def filter(app):
+            return factory(app, self.conf)
+
+        return filter
+
+
+def setup_paste_factories(conf):
+    """Set up the generic paste app and filter factories.
+
+    Set things up so that:
+
+      paste.app_factory = keystone.common.wsgi:app_factory
+
+    and
+
+      paste.filter_factory = keystone.common.wsgi:filter_factory
+
+    work correctly while loading PasteDeploy configuration.
+
+    The app factories are constructed at runtime to allow us to pass a
+    ConfigOpts object to the WSGI classes.
+
+    :param conf: a ConfigOpts object
+    """
+    global app_factory, filter_factory
+    app_factory = AppFactory(conf)
+    filter_factory = FilterFactory(conf)
+
+
+def teardown_paste_factories():
+    """Reverse the effect of setup_paste_factories()."""
+    global app_factory, filter_factory
+    del app_factory
+    del filter_factory
+
+
+def paste_deploy_app(paste_config_file, app_name, conf):
+    """Load a WSGI app from a PasteDeploy configuration.
+
+    Use deploy.loadapp() to load the app from the PasteDeploy configuration,
+    ensuring that the supplied ConfigOpts object is passed to the app and
+    filter constructors.
+
+    :param paste_config_file: a PasteDeploy config file
+    :param app_name: the name of the app/pipeline to load from the file
+    :param conf: a ConfigOpts object to supply to the app and its filters
+    :returns: the WSGI app
+    """
+    setup_paste_factories(conf)
+    try:
+        return deploy.loadapp("config:%s" % paste_config_file, name=app_name)
+    finally:
+        teardown_paste_factories()
 
 
 def render_response(body=None, status=(200, 'OK'), headers=None):

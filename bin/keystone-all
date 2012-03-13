@@ -16,14 +16,12 @@ if os.path.exists(os.path.join(possible_topdir,
                                '__init__.py')):
     sys.path.insert(0, possible_topdir)
 
-from paste import deploy
-
 from keystone import config
 from keystone.common import wsgi
 
 
-def create_server(conf, name, host, port):
-    app = deploy.loadapp('config:%s' % conf, name=name)
+def create_server(paste_config_file, name, host, port, conf):
+    app = wsgi.paste_deploy_app(paste_config_file, name, conf)
     return wsgi.Server(app, host=host, port=port)
 
 
@@ -64,9 +62,11 @@ if __name__ == '__main__':
     servers.append(create_server(conf.config_file[0],
                                  'admin',
                                  conf.bind_host,
-                                 conf.admin_port))
+                                 conf.admin_port,
+                                 conf))
     servers.append(create_server(conf.config_file[0],
                                  'main',
                                  conf.bind_host,
-                                 conf.public_port))
+                                 conf.public_port,
+                                 conf))
     serve(*servers)

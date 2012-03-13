@@ -15,30 +15,26 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystone import config
 from keystone import test
 from keystone.common import passwd
-
-
-CONF = config.CONF
 
 
 class PasswdTestCase(test.TestCase):
     def test_hash(self):
         password = 'right'
         wrong = 'wrongwrong'  # Two wrongs don't make a right
-        hashed = passwd.hash_password(CONF, password)
+        hashed = passwd.hash_password(self.conf, password)
         self.assertTrue(passwd.check_password(password, hashed))
         self.assertFalse(passwd.check_password(wrong, hashed))
 
     def test_hash_edge_cases(self):
-        hashed = passwd.hash_password(CONF, 'secret')
+        hashed = passwd.hash_password(self.conf, 'secret')
         self.assertFalse(passwd.check_password('', hashed))
         self.assertFalse(passwd.check_password(None, hashed))
 
     def test_hash_unicode(self):
         password = u'Comment \xe7a va'
         wrong = 'Comment ?a va'
-        hashed = passwd.hash_password(CONF, password)
+        hashed = passwd.hash_password(self.conf, password)
         self.assertTrue(passwd.check_password(password, hashed))
         self.assertFalse(passwd.check_password(wrong, hashed))

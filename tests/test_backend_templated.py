@@ -16,7 +16,6 @@
 
 import os
 
-from keystone import config
 from keystone import test
 from keystone.catalog import core as catalog_core
 from keystone.common import wsgi
@@ -50,10 +49,10 @@ class TestTemplatedCatalog(test.TestCase, test_backend.CatalogTests):
 
     def setUp(self):
         super(TestTemplatedCatalog, self).setUp()
-        self.catalog_api = catalog_core.Manager(config.CONF).driver
+        self.catalog_api = catalog_core.Manager(self.conf).driver
         self.load_fixtures(default_fixtures)
 
     def test_get_catalog(self):
-        wsgi.register_opts(config.CONF)
+        wsgi.register_opts(self.conf)
         catalog_ref = self.catalog_api.get_catalog('foo', 'bar')
         self.assertDictEqual(catalog_ref, self.DEFAULT_FIXTURE)

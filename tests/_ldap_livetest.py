@@ -17,7 +17,6 @@
 import subprocess
 import nose.exc
 
-from keystone import config
 from keystone import test
 from keystone.identity.backends import ldap as identity_ldap
 
@@ -25,22 +24,19 @@ import default_fixtures
 import test_backend
 
 
-CONF = config.CONF
-
-
-def delete_object(name):
+def delete_object(conf, name):
     devnull = open('/dev/null', 'w')
-    dn = '%s,%s' % (name, CONF.ldap.suffix)
+    dn = '%s,%s' % (name, conf.ldap.suffix)
     subprocess.call(['ldapdelete',
                      '-x',
-                     '-D', CONF.ldap.user,
-                     '-H', CONF.ldap.url,
-                     '-w', CONF.ldap.password,
+                     '-D', conf.ldap.user,
+                     '-H', conf.ldap.url,
+                     '-w', conf.ldap.password,
                      dn],
                     stderr=devnull)
 
 
-def clear_live_database():
+def clear_live_database(conf):
     roles = ['keystone_admin']
     groups = ['baz', 'bar', 'tenent4add', 'fake1', 'fake2']
     users = ['foo', 'two', 'fake1', 'fake2']
@@ -48,24 +44,24 @@ def clear_live_database():
 
     for group in groups:
         for role in roles:
-            delete_object('cn=%s,cn=%s,ou=Groups' % (role, group))
-        delete_object('cn=%s,ou=Groups' % group)
+            delete_object(conf, 'cn=%s,cn=%s,ou=Groups' % (role, group))
+        delete_object(conf, 'cn=%s,ou=Groups' % group)
 
     for user in users:
-        delete_object('cn=%s,ou=Users' % user)
+        delete_object(conf, 'cn=%s,ou=Users' % user)
 
     for role in roles:
-        delete_object('cn=%s,ou=Roles' % role)
+        delete_object(conf, 'cn=%s,ou=Roles' % role)
 
 
 class LDAPIdentity(test.TestCase, test_backend.IdentityTests):
     def setUp(self):
         super(LDAPIdentity, self).setUp()
-        CONF(config_files=[test.etcdir('keystone.conf'),
-                           test.testsdir('test_overrides.conf'),
-                           test.testsdir('backend_liveldap.conf')])
-        clear_live_database()
-        self.identity_api = identity_ldap.Identity(CONF)
+        self.conf(config_files=[test.etcdir('keystone.conf'),
+                                test.testsdir('test_overrides.conf'),
+                                test.testsdir('backend_liveldap.conf')])
+        clear_live_database(self.conf)
+        self.identity_api = identity_ldap.Identity(self.conf)
         self.load_fixtures(default_fixtures)
 
     def tearDown(self):

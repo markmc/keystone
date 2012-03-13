@@ -14,7 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystone import config
 from keystone import test
 from keystone.common.sql import util as sql_util
 from keystone.identity.backends import sql as identity_sql
@@ -24,17 +23,14 @@ import test_backend
 import default_fixtures
 
 
-CONF = config.CONF
-
-
 class SqlIdentity(test.TestCase, test_backend.IdentityTests):
     def setUp(self):
         super(SqlIdentity, self).setUp()
-        CONF(config_files=[test.etcdir('keystone.conf'),
-                           test.testsdir('test_overrides.conf'),
-                           test.testsdir('backend_sql.conf')])
-        sql_util.setup_test_database(CONF)
-        self.identity_api = identity_sql.Identity(CONF)
+        self.conf(config_files=[test.etcdir('keystone.conf'),
+                                test.testsdir('test_overrides.conf'),
+                                test.testsdir('backend_sql.conf')])
+        sql_util.setup_test_database(self.conf)
+        self.identity_api = identity_sql.Identity(self.conf)
         self.load_fixtures(default_fixtures)
 
     def test_delete_user_with_tenant_association(self):
@@ -52,11 +48,11 @@ class SqlIdentity(test.TestCase, test_backend.IdentityTests):
 class SqlToken(test.TestCase, test_backend.TokenTests):
     def setUp(self):
         super(SqlToken, self).setUp()
-        CONF(config_files=[test.etcdir('keystone.conf'),
-                           test.testsdir('test_overrides.conf'),
-                           test.testsdir('backend_sql.conf')])
-        sql_util.setup_test_database(CONF)
-        self.token_api = token_sql.Token(CONF)
+        self.conf(config_files=[test.etcdir('keystone.conf'),
+                                test.testsdir('test_overrides.conf'),
+                                test.testsdir('backend_sql.conf')])
+        sql_util.setup_test_database(self.conf)
+        self.token_api = token_sql.Token(self.conf)
 
 
 #class SqlCatalog(test_backend_kvs.KvsCatalog):

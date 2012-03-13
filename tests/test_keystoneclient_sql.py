@@ -31,7 +31,7 @@ class KcMasterSqlTestCase(test_keystoneclient.KcMasterTestCase):
         CONF(config_files=[test.etcdir('keystone.conf'),
                            test.testsdir('test_overrides.conf'),
                            test.testsdir('backend_sql.conf')])
-        sql_util.setup_test_database()
+        sql_util.setup_test_database(CONF)
 
     def test_endpoint_crud(self):
         from keystoneclient import exceptions as client_exceptions

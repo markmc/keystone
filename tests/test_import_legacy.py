@@ -36,7 +36,7 @@ class ImportLegacy(test.TestCase):
         CONF(config_files=[test.etcdir('keystone.conf'),
                            test.testsdir('test_overrides.conf'),
                            test.testsdir('backend_sql.conf')])
-        sql_util.setup_test_database()
+        sql_util.setup_test_database(CONF)
         self.identity_api = identity_sql.Identity()
 
     def setup_old_database(self, sql_dump):

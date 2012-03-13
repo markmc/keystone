@@ -132,8 +132,8 @@ class UserTenantMembership(sql.ModelBase, sql.DictBase):
 
 class Identity(sql.Base, identity.Driver):
     # Internal interface to manage the database
-    def db_sync(self):
-        migration.db_sync()
+    def db_sync(self, conf):
+        migration.db_sync(conf)
 
     # Identity interface
     def authenticate(self, user_id=None, tenant_id=None, password=None):

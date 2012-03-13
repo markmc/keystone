@@ -104,14 +104,6 @@ global_opts = [
 
 CONF.register_opts(global_opts)
 
-sql_opts = [
-    cfg.StrOpt('connection'),
-    cfg.IntOpt('idle_timeout'),
-    ]
-
-CONF.register_group(cfg.OptGroup('sql'))
-CONF.register_opts(sql_opts, group='sql')
-
 ldap_opts = [
     cfg.StrOpt('url'),
     cfg.StrOpt('user'),

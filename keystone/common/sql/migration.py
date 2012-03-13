@@ -23,10 +23,7 @@ import sys
 import sqlalchemy
 from migrate.versioning import api as versioning_api
 
-from keystone import config
-
-
-CONF = config.CONF
+from keystone.common.sql import opts
 
 
 try:
@@ -40,36 +37,34 @@ except ImportError:
         sys.exit('python-migrate is not installed. Exiting.')
 
 
-def db_sync(version=None):
+def db_sync(conf, version=None):
     if version is not None:
         try:
             version = int(version)
         except ValueError:
             raise Exception('version should be an integer')
 
-    current_version = db_version()
+    sql_connection = opts.get_sql_connection(conf)
+
+    current_version = db_version(sql_connection)
     repo_path = _find_migrate_repo()
     if version is None or version > current_version:
-        return versioning_api.upgrade(
-                CONF.sql.connection, repo_path, version)
+        return versioning_api.upgrade(sql_connection, repo_path, version)
     else:
-        return versioning_api.downgrade(
-                CONF.sql.connection, repo_path, version)
+        return versioning_api.downgrade(sql_connection, repo_path, version)
 
 
-def db_version():
+def db_version(sql_connection):
     repo_path = _find_migrate_repo()
     try:
-        return versioning_api.db_version(
-                CONF.sql.connection, repo_path)
+        return versioning_api.db_version(sql_connection, repo_path)
     except versioning_exceptions.DatabaseNotControlledError:
-        return db_version_control(0)
+        return db_version_control(sql_connection, version=0)
 
 
-def db_version_control(version=None):
+def db_version_control(sql_connection, version=None):
     repo_path = _find_migrate_repo()
-    versioning_api.version_control(
-            CONF.sql.connection, repo_path, version)
+    versioning_api.version_control(sql_connection, repo_path, version)
     return version
 
 

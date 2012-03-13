@@ -18,6 +18,7 @@ import re
 
 import sqlalchemy
 
+from keystone import config
 from keystone.identity.backends import sql as identity_sql
 
 
@@ -49,7 +50,7 @@ class LegacyMigration(object):
     def __init__(self, db_string):
         self.db = sqlalchemy.create_engine(db_string)
         self.identity_driver = identity_sql.Identity()
-        self.identity_driver.db_sync()
+        self.identity_driver.db_sync(config.CONF)
         self._data = {}
         self._user_map = {}
         self._tenant_map = {}

@@ -50,6 +50,9 @@ class Manager(manager.Manager):
 class Driver(object):
     """Interface description for an Identity driver."""
 
+    def __init__(self, conf):
+        self.conf = conf
+
     def authenticate(self, user_id=None, tenant_id=None, password=None):
         """Authenticate a given user, tenant and password.
 

@@ -70,11 +70,11 @@ class MigrateNovaAuth(test.TestCase):
                            test.testsdir('test_overrides.conf'),
                            test.testsdir('backend_sql.conf')])
         sql_util.setup_test_database(CONF)
-        self.identity_api = identity_sql.Identity()
-        self.ec2_api = ec2_sql.Ec2()
+        self.identity_api = identity_sql.Identity(CONF)
+        self.ec2_api = ec2_sql.Ec2(CONF)
 
     def test_import(self):
-        nova.import_auth(FIXTURE)
+        nova.import_auth(CONF, FIXTURE)
 
         users = {}
         for user in ['user1', 'user2', 'user3', 'user4']:

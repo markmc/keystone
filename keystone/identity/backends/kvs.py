@@ -14,7 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from keystone import config
 from keystone import identity
 from keystone.common import kvs
 from keystone.common import passwd
@@ -28,14 +27,12 @@ def _filter_user(user_ref):
     return user_ref
 
 
-def _ensure_hashed_password(user_ref):
-    pw = user_ref.get('password', None)
-    if pw is not None:
-        user_ref['password'] = passwd.hash_password(config.CONF, pw)
-    return user_ref
-
-
 class Identity(kvs.Base, identity.Driver):
+
+    def __init__(self, conf, db=None):
+        kvs.Base.__init__(self, db)
+        identity.Driver.__init__(self, conf)
+
     # Public interface
     def authenticate(self, user_id=None, tenant_id=None, password=None):
         """Authenticate based on a user, tenant and password.
@@ -149,13 +146,19 @@ class Identity(kvs.Base, identity.Driver):
         metadata_ref['roles'] = list(roles)
         self.update_metadata(user_id, tenant_id, metadata_ref)
 
+    def _ensure_hashed_password(self, user_ref):
+        pw = user_ref.get('password', None)
+        if pw is not None:
+            user_ref['password'] = passwd.hash_password(self.conf, pw)
+        return user_ref
+
     # CRUD
     def create_user(self, user_id, user):
         if self.get_user(user_id):
             raise Exception('Duplicate id')
         if self.get_user_by_name(user['name']):
             raise Exception('Duplicate name')
-        user = _ensure_hashed_password(user)
+        user = self._ensure_hashed_password(user)
         self.db.set('user-%s' % user_id, user)
         self.db.set('user_name-%s' % user['name'], user)
         user_list = set(self.db.get('user_list', []))
@@ -171,7 +174,7 @@ class Identity(kvs.Base, identity.Driver):
         # get the old name and delete it too
         old_user = self.db.get('user-%s' % user_id)
         new_user = old_user.copy()
-        user = _ensure_hashed_password(user)
+        user = self._ensure_hashed_password(user)
         new_user.update(user)
         new_user['id'] = user_id
         self.db.delete('user_name-%s' % old_user['name'])

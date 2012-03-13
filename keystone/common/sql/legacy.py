@@ -49,8 +49,8 @@ def _translate_replacements(s):
 class LegacyMigration(object):
     def __init__(self, db_string):
         self.db = sqlalchemy.create_engine(db_string)
-        self.identity_driver = identity_sql.Identity()
-        self.identity_driver.db_sync(config.CONF)
+        self.identity_driver = identity_sql.Identity(config.CONF)
+        self.identity_driver.db_sync()
         self._data = {}
         self._user_map = {}
         self._tenant_map = {}

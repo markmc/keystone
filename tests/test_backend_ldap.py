@@ -40,7 +40,7 @@ class LDAPIdentity(test.TestCase, test_backend.IdentityTests):
                            test.testsdir('test_overrides.conf'),
                            test.testsdir('backend_ldap.conf')])
         clear_database()
-        self.identity_api = identity_ldap.Identity()
+        self.identity_api = identity_ldap.Identity(CONF)
         self.load_fixtures(default_fixtures)
 
     def tearDown(self):

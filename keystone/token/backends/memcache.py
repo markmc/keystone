@@ -19,7 +19,6 @@ import copy
 
 import memcache
 
-from keystone import config
 from keystone import exception
 from keystone import token
 from keystone.common import utils
@@ -31,18 +30,20 @@ class Token(token.Driver):
     opt_group = cfg.OptGroup('memcache')
     servers_opt = cfg.StrOpt('servers', default='localhost:11211')
 
-    def __init__(self, client=None):
-        self._memcache_client = client
+    def __init__(self, conf, client=None):
+        token.Driver.__init__(self, conf)
 
-        config.CONF.register_group(self.opt_group)
-        config.CONF.register_opt(self.servers_opt, group='memcache')
+        self.conf.register_group(self.opt_group)
+        self.conf.register_opt(self.servers_opt, group='memcache')
+
+        self._memcache_client = client
 
     @property
     def client(self):
         return self._memcache_client or self._get_memcache_client()
 
     def _get_memcache_client(self):
-        memcache_servers = config.CONF.memcache.servers.split(',')
+        memcache_servers = self.conf.memcache.servers.split(',')
         self._memcache_client = memcache.Client(memcache_servers, debug=0)
         return self._memcache_client
 

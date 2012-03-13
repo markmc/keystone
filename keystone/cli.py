@@ -52,9 +52,9 @@ class DbSync(BaseApp):
 
     def main(self):
         for k in ['identity', 'catalog', 'policy', 'token']:
-            driver = utils.import_object(getattr(CONF, k).driver)
+            driver = utils.import_object(getattr(CONF, k).driver, conf)
             if hasattr(driver, 'db_sync'):
-                driver.db_sync(CONF)
+                driver.db_sync()
 
 
 class ImportLegacy(BaseApp):
@@ -105,7 +105,7 @@ class ImportNovaAuth(BaseApp):
             return self.missing_param('dump_file')
         dump_file = self.argv[1]
         dump_data = json.loads(open(dump_file).read())
-        nova.import_auth(dump_data)
+        nova.import_auth(CONF, dump_data)
 
 
 CMDS = {'db_sync': DbSync,

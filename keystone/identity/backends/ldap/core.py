@@ -19,7 +19,6 @@ import uuid
 import ldap
 from ldap import filter as ldap_filter
 
-from keystone import config
 from keystone import exception
 from keystone import identity
 from keystone.common import ldap as common_ldap
@@ -69,10 +68,9 @@ class Identity(identity.Driver):
         cfg.StrOpt('role_member_attribute', default='roleOccupant'),
         ]
 
-    def __init__(self):
-        super(Identity, self).__init__()
+    def __init__(self, conf):
+        super(Identity, self).__init__(conf)
 
-        self.conf = config.CONF
         self.conf.register_group(self.ldap_opt_group)
         self.conf.register_opts(self.ldap_opts, group=self.ldap_opt_group)
 

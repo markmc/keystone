@@ -38,6 +38,10 @@ class Manager(manager.Manager):
 
 
 class Driver(object):
+
+    def __init__(self, conf):
+        self.conf = conf
+
     def enforce(context, credentials, action, target):
         """Verify that a user is authorized to perform action.
 

@@ -111,31 +111,6 @@ class Request(webob.Request):
 class BaseApplication(object):
     """Base WSGI application wrapper. Subclasses need to implement __call__."""
 
-    @classmethod
-    def factory(cls, global_config, **local_config):
-        """Used for paste app factories in paste.deploy config files.
-
-        Any local configuration (that is, values under the [app:APPNAME]
-        section of the paste config) will be passed into the `__init__` method
-        as kwargs.
-
-        A hypothetical configuration would look like:
-
-            [app:wadl]
-            latest_version = 1.3
-            paste.app_factory = nova.api.fancy_api:Wadl.factory
-
-        which would result in a call to the `Wadl` class as
-
-            import nova.api.fancy_api
-            fancy_api.Wadl(latest_version='1.3')
-
-        You could of course re-implement the `factory` method in subclasses,
-        but using the kwarg passing it shouldn't be necessary.
-
-        """
-        return cls()
-
     def __call__(self, environ, start_response):
         r"""Subclasses will probably want to implement __call__ like this:
 
@@ -260,30 +235,8 @@ class Middleware(Application):
 
     @classmethod
     def factory(cls, global_config, **local_config):
-        """Used for paste app factories in paste.deploy config files.
-
-        Any local configuration (that is, values under the [filter:APPNAME]
-        section of the paste config) will be passed into the `__init__` method
-        as kwargs.
-
-        A hypothetical configuration would look like:
-
-            [filter:analytics]
-            redis_host = 127.0.0.1
-            paste.filter_factory = nova.api.analytics:Analytics.factory
-
-        which would result in a call to the `Analytics` class as
-
-            import nova.api.analytics
-            analytics.Analytics(app_from_paste, redis_host='127.0.0.1')
-
-        You could of course re-implement the `factory` method in subclasses,
-        but using the kwarg passing it shouldn't be necessary.
-
-        """
+        """Temporary compat method"""
         def _factory(app):
-            conf = global_config.copy()
-            conf.update(local_config)
             return cls(app, config.CONF)
         return _factory
 
@@ -458,30 +411,8 @@ class ExtensionRouter(Router):
 
     @classmethod
     def factory(cls, global_config, **local_config):
-        """Used for paste app factories in paste.deploy config files.
-
-        Any local configuration (that is, values under the [filter:APPNAME]
-        section of the paste config) will be passed into the `__init__` method
-        as kwargs.
-
-        A hypothetical configuration would look like:
-
-            [filter:analytics]
-            redis_host = 127.0.0.1
-            paste.filter_factory = nova.api.analytics:Analytics.factory
-
-        which would result in a call to the `Analytics` class as
-
-            import nova.api.analytics
-            analytics.Analytics(app_from_paste, redis_host='127.0.0.1')
-
-        You could of course re-implement the `factory` method in subclasses,
-        but using the kwarg passing it shouldn't be necessary.
-
-        """
+        """Temporary compat method."""
         def _factory(app):
-            conf = global_config.copy()
-            conf.update(local_config)
             return cls(app, config.CONF)
         return _factory
 

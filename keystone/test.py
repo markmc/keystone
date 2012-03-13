@@ -31,6 +31,7 @@ from keystone.common import kvs
 from keystone.common import logging
 from keystone.common import utils
 from keystone.common import wsgi
+from keystone.openstack.common import pastedeploy
 
 
 LOG = logging.getLogger(__name__)
@@ -211,21 +212,19 @@ class TestCase(unittest.TestCase):
                                            metadata['tenant_id']), rv)
 
     def _paste_config(self, config):
-        if not config.startswith('config:'):
-            test_path = os.path.join(TESTSDIR, config)
-            etc_path = os.path.join(ROOTDIR, 'etc', config)
-            for path in [test_path, etc_path]:
-                if os.path.exists('%s.conf' % path):
-                    return 'config:%s.conf' % path
-        return config
+        test_path = os.path.join(TESTSDIR, config)
+        etc_path = os.path.join(ROOTDIR, 'etc', config)
+        for path in [test_path, etc_path]:
+            if os.path.exists('%s.conf' % path):
+                return '%s.conf' % path
+        raise RuntimeError('No %s.conf file found in %s or %s' %
+                           (config, TESTSDIR, ROOTDIR))
 
     def loadapp(self, config, name='main'):
-        return deploy.loadapp(self._paste_config(config), name=name)
+        paste_config_file = self._paste_config(config)
+        return pastedeploy.paste_deploy_app(paste_config_file, name, self.conf)
 
-    def appconfig(self, config):
-        return deploy.appconfig(self._paste_config(config))
-
-    def serveapp(self, config, name=None):
+    def serveapp(self, config, name):
         app = self.loadapp(config, name=name)
         server = wsgi.Server(app, 0)
         server.start(key='socket')

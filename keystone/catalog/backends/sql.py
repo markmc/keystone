@@ -77,8 +77,8 @@ class Endpoint(sql.ModelBase, sql.DictBase):
 class Catalog(sql.Base, catalog.Driver):
 
     def __init__(self, conf):
+        sql.Base.__init__(self, conf)
         catalog.Driver.__init__(self, conf)
-        self.conf = conf
 
     def db_sync(self):
         migration.db_sync()

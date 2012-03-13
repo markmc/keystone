@@ -29,7 +29,6 @@ import sqlalchemy.pool
 import sqlalchemy.engine.url
 
 from keystone.common.sql import opts
-from keystone import config
 from keystone.common import logging
 
 
@@ -133,10 +132,13 @@ class Base(object):
     _MAKER = None
     _ENGINE = None
 
+    def __init__(self, conf):
+        self.conf = conf
+
     def get_session(self, autocommit=True, expire_on_commit=False):
         """Return a SQLAlchemy session."""
         if self._MAKER is None or self._ENGINE is None:
-            self._ENGINE = self.get_engine(config.CONF)
+            self._ENGINE = self.get_engine()
             self._MAKER = self.get_maker(self._ENGINE,
                                          autocommit,
                                          expire_on_commit)
@@ -144,10 +146,10 @@ class Base(object):
         session = self._MAKER()
         return session
 
-    def get_engine(self, conf):
+    def get_engine(self):
         """Return a SQLAlchemy engine."""
-        sql_connection = opts.get_sql_connection(conf)
-        sql_idle_timeout = opts.get_sql_idle_timeout(conf)
+        sql_connection = opts.get_sql_connection(self.conf)
+        sql_idle_timeout = opts.get_sql_idle_timeout(self.conf)
 
         connection_dict = sql.engine.url.make_url(sql_connection)
 

@@ -126,7 +126,7 @@ class UserTenantMembership(sql.ModelBase, sql.DictBase):
 class Identity(sql.Base, identity.Driver):
 
     def __init__(self, conf):
-        sql.Base.__init__(self)
+        sql.Base.__init__(self, conf)
         identity.Driver.__init__(self, conf)
 
     # Internal interface to manage the database

@@ -121,18 +121,19 @@ class TestCase(unittest.TestCase):
         super(TestCase, self).__init__(*args, **kw)
         self._paths = []
         self._memo = {}
-        self.conf = config.CONF
-        self._overrides = []
 
-    def setUp(self):
+    def setUp(self, conf_files=None):
+        if conf_files is None:
+            conf_files = [etcdir('keystone.conf'),
+                          testsdir('test_overrides.conf')]
+        self.config(conf_files)
         super(TestCase, self).setUp()
-        self.config()
         self.mox = mox.Mox()
         self.stubs = stubout.StubOutForTesting()
 
-    def config(self):
-        self.conf(config_files=[etcdir('keystone.conf'),
-                                testsdir('test_overrides.conf')])
+    def config(self, conf_files):
+        self.conf = config.KeystoneConfigOpts(default_config_files=conf_files)
+        self.conf()
 
     def tearDown(self):
         try:
@@ -146,18 +147,10 @@ class TestCase(unittest.TestCase):
                 if path in sys.path:
                     sys.path.remove(path)
             kvs.INMEMDB.clear()
-            self.reset_opts()
 
     def opt(self, **kw):
         for k, v in kw.iteritems():
             self.conf.set_override(k, v)
-        self._overrides.append(k)
-
-    def reset_opts(self):
-        for k in self._overrides:
-            self.conf.set_override(k, None)
-        self._overrides = []
-        self.conf.reset()
 
     def load_backends(self):
         """Hacky shortcut to load the backends for data manipulation."""

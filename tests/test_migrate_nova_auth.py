@@ -61,10 +61,10 @@ FIXTURE = {
 
 class MigrateNovaAuth(test.TestCase):
     def setUp(self):
-        super(MigrateNovaAuth, self).setUp()
-        self.conf(config_files=[test.etcdir('keystone.conf'),
-                                test.testsdir('test_overrides.conf'),
-                                test.testsdir('backend_sql.conf')])
+        super(MigrateNovaAuth, self).setUp([
+                test.etcdir('keystone.conf'),
+                test.testsdir('test_overrides.conf'),
+                test.testsdir('backend_sql.conf')])
         sql_util.setup_test_database(self.conf)
         self.identity_api = identity_sql.Identity(self.conf)
         self.ec2_api = ec2_sql.Ec2(self.conf)

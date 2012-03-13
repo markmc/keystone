@@ -52,9 +52,10 @@ class DbSync(BaseApp):
 
     def main(self):
         for k in ['identity', 'catalog', 'policy', 'token']:
-            driver = utils.import_object(getattr(CONF, k).driver)
-            if hasattr(driver, 'db_sync'):
-                driver.db_sync(CONF)
+            name = 'keystone.%s.core.Manager' % k
+            manager = utils.import_object(name, CONF)
+            if hasattr(manager.driver, 'db_sync'):
+                manager.driver.db_sync(CONF)
 
 
 class ImportLegacy(BaseApp):

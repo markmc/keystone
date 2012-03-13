@@ -16,8 +16,9 @@
 
 import os
 
+from keystone import config
 from keystone import test
-from keystone.catalog.backends import templated as catalog_templated
+from keystone.catalog import core as catalog_core
 
 import test_backend
 import default_fixtures
@@ -48,8 +49,7 @@ class TestTemplatedCatalog(test.TestCase, test_backend.CatalogTests):
 
     def setUp(self):
         super(TestTemplatedCatalog, self).setUp()
-        self.opt_in_group('catalog', template_file=DEFAULT_CATALOG_TEMPLATES)
-        self.catalog_api = catalog_templated.TemplatedCatalog()
+        self.catalog_api = catalog_core.Manager(config.CONF).driver
         self.load_fixtures(default_fixtures)
 
     def test_get_catalog(self):

@@ -26,9 +26,7 @@ from keystone import policy
 from keystone import token
 from keystone.common import manager
 from keystone.common import wsgi
-
-
-CONF = config.CONF
+from keystone.openstack.common import cfg
 
 
 class Manager(manager.Manager):
@@ -39,8 +37,13 @@ class Manager(manager.Manager):
 
     """
 
-    def __init__(self):
-        super(Manager, self).__init__(CONF.catalog.driver)
+    opt_group = cfg.OptGroup('catalog')
+    driver_opt = cfg.StrOpt(
+        'driver',
+        default='keystone.catalog.backends.templated.TemplatedCatalog')
+
+    def __init__(self, conf):
+        super(Manager, self).__init__(conf, self.opt_group, self.driver_opt)
 
 
 class Driver(object):
@@ -115,7 +118,7 @@ class Driver(object):
 
 class ServiceController(wsgi.Application):
     def __init__(self):
-        self.catalog_api = Manager()
+        self.catalog_api = Manager(config.CONF)
         super(ServiceController, self).__init__()
 
     # CRUD extensions
@@ -149,10 +152,10 @@ class ServiceController(wsgi.Application):
 
 class EndpointController(wsgi.Application):
     def __init__(self):
-        self.catalog_api = Manager()
-        self.identity_api = identity.Manager()
-        self.policy_api = policy.Manager()
-        self.token_api = token.Manager()
+        self.catalog_api = Manager(config.CONF)
+        self.identity_api = identity.Manager(config.CONF)
+        self.policy_api = policy.Manager(config.CONF)
+        self.token_api = token.Manager(config.CONF)
         super(EndpointController, self).__init__()
 
     def get_endpoints(self, context):

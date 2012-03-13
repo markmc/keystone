@@ -46,9 +46,7 @@ from keystone import token
 from keystone.common import manager
 from keystone.common import utils
 from keystone.common import wsgi
-
-
-CONF = config.CONF
+from keystone.openstack.common import cfg
 
 
 class Manager(manager.Manager):
@@ -59,8 +57,12 @@ class Manager(manager.Manager):
 
     """
 
-    def __init__(self):
-        super(Manager, self).__init__(CONF.ec2.driver)
+    opt_group = cfg.OptGroup('ec2')
+    driver_opt = cfg.StrOpt('driver',
+                            default='keystone.contrib.ec2.backends.kvs.Ec2')
+
+    def __init__(self, conf):
+        super(Manager, self).__init__(conf, self.opt_group, self.driver_opt)
 
 
 class Ec2Extension(wsgi.ExtensionRouter):
@@ -93,11 +95,11 @@ class Ec2Extension(wsgi.ExtensionRouter):
 
 class Ec2Controller(wsgi.Application):
     def __init__(self):
-        self.catalog_api = catalog.Manager()
-        self.identity_api = identity.Manager()
-        self.token_api = token.Manager()
-        self.policy_api = policy.Manager()
-        self.ec2_api = Manager()
+        self.catalog_api = catalog.Manager(config.CONF)
+        self.identity_api = identity.Manager(config.CONF)
+        self.token_api = token.Manager(config.CONF)
+        self.policy_api = policy.Manager(config.CONF)
+        self.ec2_api = Manager(config.CONF)
         super(Ec2Controller, self).__init__()
 
     def check_signature(self, creds_ref, credentials):

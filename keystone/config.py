@@ -25,24 +25,10 @@ from keystone.openstack.common import cfg
 gettext.install('keystone', unicode=1)
 
 
-class ConfigMixin(object):
-    def __call__(self, config_files=None, *args, **kw):
-        if config_files is not None:
-            self._opts['config_file']['opt'].default = config_files
-        kw.setdefault('args', [])
-        return super(ConfigMixin, self).__call__(*args, **kw)
+class KeystoneConfigOpts(cfg.CommonConfigOpts):
 
-    def set_usage(self, usage):
-        self.usage = usage
-        self._oparser.usage = usage
-
-
-class Config(ConfigMixin, cfg.ConfigOpts):
-    pass
-
-
-class CommonConfig(ConfigMixin, cfg.CommonConfigOpts):
-    pass
+    def __init__(self, **kwargs):
+        super(KeystoneConfigOpts, self).__init__(project='keystone', **kwargs)
 
 
 def setup_logging(conf):
@@ -90,6 +76,3 @@ def setup_logging(conf):
 
     handler.setFormatter(formatter)
     root_logger.addHandler(handler)
-
-
-CONF = CommonConfig(project='keystone')

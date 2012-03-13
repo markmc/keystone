@@ -23,10 +23,12 @@ import test_keystoneclient
 
 
 class KcMasterSqlTestCase(test_keystoneclient.KcMasterTestCase):
-    def config(self):
-        self.conf(config_files=[test.etcdir('keystone.conf'),
-                                test.testsdir('test_overrides.conf'),
-                                test.testsdir('backend_sql.conf')])
+    def setUp(self):
+        super(KcMasterSqlTestCase, self).setUp([test.etcdir('keystone.conf'),
+                                                test.testsdir('test_overrides.conf'),
+                                                test.testsdir('backend_sql.conf')])
+
+    def _setup_test_database(self):
         sql_util.setup_test_database(self.conf)
 
     def test_endpoint_crud(self):

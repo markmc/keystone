@@ -56,10 +56,10 @@ def clear_live_database(conf):
 
 class LDAPIdentity(test.TestCase, test_backend.IdentityTests):
     def setUp(self):
-        super(LDAPIdentity, self).setUp()
-        self.conf(config_files=[test.etcdir('keystone.conf'),
-                                test.testsdir('test_overrides.conf'),
-                                test.testsdir('backend_liveldap.conf')])
+        super(LDAPIdentity, self).setUp([
+                test.etcdir('keystone.conf'),
+                test.testsdir('test_overrides.conf'),
+                test.testsdir('backend_liveldap.conf')])
         clear_live_database(self.conf)
         self.identity_api = identity_ldap.Identity(self.conf)
         self.load_fixtures(default_fixtures)

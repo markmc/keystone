@@ -27,12 +27,14 @@ KEYSTONECLIENT_REPO = '%s/python-keystoneclient.git' % OPENSTACK_REPO
 
 
 class CompatTestCase(test.TestCase):
-    def setUp(self):
-        super(CompatTestCase, self).setUp()
+    def setUp(self, config_files=None):
+        super(CompatTestCase, self).setUp(config_files)
 
         revdir = test.checkout_vendor(*self.get_checkout())
         self.add_path(revdir)
         self.clear_module('keystoneclient')
+
+        self._setup_test_database()
 
         self.load_backends()
         self.load_fixtures(default_fixtures)
@@ -54,6 +56,9 @@ class CompatTestCase(test.TestCase):
         self.public_server = None
         self.admin_server = None
         super(CompatTestCase, self).tearDown()
+
+    def _setup_test_database(self):
+        pass
 
     def _public_url(self):
         public_port = self.public_server.socket_info['socket'][1]

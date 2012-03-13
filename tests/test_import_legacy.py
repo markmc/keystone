@@ -28,10 +28,9 @@ from keystone.catalog.backends import templated as catalog_templated
 
 class ImportLegacy(test.TestCase):
     def setUp(self):
-        super(ImportLegacy, self).setUp()
-        self.conf(config_files=[test.etcdir('keystone.conf'),
-                                test.testsdir('test_overrides.conf'),
-                                test.testsdir('backend_sql.conf')])
+        super(ImportLegacy, self).setUp([test.etcdir('keystone.conf'),
+                                         test.testsdir('test_overrides.conf'),
+                                         test.testsdir('backend_sql.conf')])
         sql_util.setup_test_database(self.conf)
         self.identity_api = identity_sql.Identity(self.conf)
 

@@ -123,11 +123,10 @@ def run(cmd, conf, args):
     return CMDS[cmd](conf, argv=args).run()
 
 
-def main(argv=None, config_files=None):
-    conf = config.CONF
-    conf.reset()
-    conf.set_usage('%prog COMMAND')
-    args = conf(config_files=config_files, args=argv)
+def main(argv, config_files):
+    conf = config.KeystoneConfigOpts(usage='%prog COMMAND',
+                                     default_config_files=config_files)
+    args = conf(argv)
 
     if len(args) < 2:
         conf.print_help()

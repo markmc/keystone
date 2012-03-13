@@ -233,13 +233,6 @@ class Middleware(Application):
 
     """
 
-    @classmethod
-    def factory(cls, global_config, **local_config):
-        """Temporary compat method"""
-        def _factory(app):
-            return cls(app, config.CONF)
-        return _factory
-
     def __init__(self, application, conf):
         self.application = application
         self.conf = conf
@@ -408,13 +401,6 @@ class ExtensionRouter(Router):
 
     def add_routes(self, mapper):
         pass
-
-    @classmethod
-    def factory(cls, global_config, **local_config):
-        """Temporary compat method."""
-        def _factory(app):
-            return cls(app, config.CONF)
-        return _factory
 
 
 def render_response(body=None, status=(200, 'OK'), headers=None):

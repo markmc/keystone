@@ -18,12 +18,8 @@ import json
 
 import webob
 
-from keystone import config
 from keystone import middleware
 from keystone import test
-
-
-CONF = config.CONF
 
 
 def make_request(**kwargs):
@@ -56,14 +52,16 @@ class TokenAuthMiddlewareTest(test.TestCase):
 class AdminTokenAuthMiddlewareTest(test.TestCase):
     def test_request_admin(self):
         req = make_request()
-        req.headers[middleware.AUTH_TOKEN_HEADER] = CONF.admin_token
+        self.opt(admin_token='ADMINADMINADMIN')
+        req.headers[middleware.AUTH_TOKEN_HEADER] = 'ADMINADMINADMIN'
         middleware.AdminTokenAuthMiddleware(None).process_request(req)
         context = req.environ[middleware.CONTEXT_ENV]
         self.assertTrue(context['is_admin'])
 
     def test_request_non_admin(self):
         req = make_request()
-        req.headers[middleware.AUTH_TOKEN_HEADER] = 'NOT-ADMIN'
+        self.opt(admin_token='ADMINADMINADMIN')
+        req.headers[middleware.AUTH_TOKEN_HEADER] = 'NOTADMINNOTADMINNOTADMIN'
         middleware.AdminTokenAuthMiddleware(None).process_request(req)
         context = req.environ[middleware.CONTEXT_ENV]
         self.assertFalse(context['is_admin'])

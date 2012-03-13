@@ -93,12 +93,3 @@ def setup_logging(conf):
 
 
 CONF = CommonConfig(project='keystone')
-
-global_opts = [
-    cfg.StrOpt('bind_host', default='0.0.0.0'),
-    cfg.StrOpt('compute_port'),
-    cfg.StrOpt('admin_port'),
-    cfg.StrOpt('public_port'),
-    ]
-
-CONF.register_opts(global_opts)

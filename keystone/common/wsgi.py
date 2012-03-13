@@ -35,6 +35,18 @@ import webob.exc
 
 from keystone import exception
 from keystone.common import utils
+from keystone.openstack.common import cfg
+
+
+wsgi_opts = [
+    cfg.StrOpt('bind_host', default='0.0.0.0'),
+    cfg.IntOpt('admin_port', default=35357),
+    cfg.IntOpt('public_port', default=5000),
+    ]
+
+
+def register_opts(conf):
+    conf.register_opts(wsgi_opts)
 
 
 class WritableLogger(object):

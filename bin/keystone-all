@@ -60,15 +60,15 @@ if __name__ == '__main__':
     if CONF.debug:
         CONF.log_opt_values(logging.getLogger(CONF.prog), logging.DEBUG)
 
-    options = deploy.appconfig('config:%s' % CONF.config_file[0])
+    wsgi.register_opts(CONF)
 
     servers = []
     servers.append(create_server(CONF.config_file[0],
                                  'admin',
-                                 options['bind_host'],
-                                 int(options['admin_port'])))
+                                 CONF.bind_host,
+                                 CONF.admin_port))
     servers.append(create_server(CONF.config_file[0],
                                  'main',
-                                 options['bind_host'],
-                                 int(options['public_port'])))
+                                 CONF.bind_host,
+                                 CONF.public_port))
     serve(*servers)

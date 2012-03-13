@@ -32,16 +32,16 @@ from keystone.common import wsgi
 
 
 class AdminRouter(wsgi.ComposingRouter):
-    def __init__(self):
+    def __init__(self, conf):
         mapper = routes.Mapper()
 
-        version_controller = VersionController('admin')
+        version_controller = VersionController(conf, 'admin')
         mapper.connect('/',
                        controller=version_controller,
                        action='get_version')
 
         # Token Operations
-        auth_controller = TokenController()
+        auth_controller = TokenController(conf)
         mapper.connect('/tokens',
                        controller=auth_controller,
                        action='authenticate',
@@ -73,22 +73,22 @@ class AdminRouter(wsgi.ComposingRouter):
                        controller=extensions_controller,
                        action='get_extension_info',
                        conditions=dict(method=['GET']))
-        identity_router = identity.AdminRouter()
+        identity_router = identity.AdminRouter(conf)
         routers = [identity_router]
-        super(AdminRouter, self).__init__(mapper, routers)
+        super(AdminRouter, self).__init__(conf, mapper, routers)
 
 
 class PublicRouter(wsgi.ComposingRouter):
-    def __init__(self):
+    def __init__(self, conf):
         mapper = routes.Mapper()
 
-        version_controller = VersionController('public')
+        version_controller = VersionController(conf, 'public')
         mapper.connect('/',
                        controller=version_controller,
                        action='get_version')
 
         # Token Operations
-        auth_controller = TokenController()
+        auth_controller = TokenController(conf)
         mapper.connect('/tokens',
                        controller=auth_controller,
                        action='authenticate',
@@ -105,37 +105,37 @@ class PublicRouter(wsgi.ComposingRouter):
                        action='get_extension_info',
                        conditions=dict(method=['GET']))
 
-        identity_router = identity.PublicRouter()
+        identity_router = identity.PublicRouter(conf)
         routers = [identity_router]
 
-        super(PublicRouter, self).__init__(mapper, routers)
+        super(PublicRouter, self).__init__(conf, mapper, routers)
 
 
 class PublicVersionRouter(wsgi.ComposingRouter):
-    def __init__(self):
+    def __init__(self, conf):
         mapper = routes.Mapper()
-        version_controller = VersionController('public')
+        version_controller = VersionController(conf, 'public')
         mapper.connect('/',
                        controller=version_controller,
                        action='get_versions')
         routers = []
-        super(PublicVersionRouter, self).__init__(mapper, routers)
+        super(PublicVersionRouter, self).__init__(conf, mapper, routers)
 
 
 class AdminVersionRouter(wsgi.ComposingRouter):
-    def __init__(self):
+    def __init__(self, conf):
         mapper = routes.Mapper()
-        version_controller = VersionController('admin')
+        version_controller = VersionController(conf, 'admin')
         mapper.connect('/',
                        controller=version_controller,
                        action='get_versions')
         routers = []
-        super(AdminVersionRouter, self).__init__(mapper, routers)
+        super(AdminVersionRouter, self).__init__(conf, mapper, routers)
 
 
 class VersionController(wsgi.Application):
-    def __init__(self, version_type):
-        self.catalog_api = catalog.Manager(config.CONF)
+    def __init__(self, conf, version_type):
+        self.catalog_api = catalog.Manager(conf)
         self.url_key = "%sURL" % version_type
 
         super(VersionController, self).__init__()
@@ -219,11 +219,11 @@ class NoopController(wsgi.Application):
 
 
 class TokenController(wsgi.Application):
-    def __init__(self):
-        self.catalog_api = catalog.Manager(config.CONF)
-        self.identity_api = identity.Manager(config.CONF)
-        self.token_api = token.Manager(config.CONF)
-        self.policy_api = policy.Manager(config.CONF)
+    def __init__(self, conf):
+        self.catalog_api = catalog.Manager(conf)
+        self.identity_api = identity.Manager(conf)
+        self.token_api = token.Manager(conf)
+        self.policy_api = policy.Manager(conf)
         super(TokenController, self).__init__()
 
     def authenticate(self, context, auth=None):
@@ -552,27 +552,19 @@ class AdminExtensionsController(ExtensionsController):
 
 @logging.fail_gracefully
 def public_app_factory(global_conf, **local_conf):
-    conf = global_conf.copy()
-    conf.update(local_conf)
-    return PublicRouter()
+    return PublicRouter(config.CONF)
 
 
 @logging.fail_gracefully
 def admin_app_factory(global_conf, **local_conf):
-    conf = global_conf.copy()
-    conf.update(local_conf)
-    return AdminRouter()
+    return AdminRouter(config.CONF)
 
 
 @logging.fail_gracefully
 def public_version_app_factory(global_conf, **local_conf):
-    conf = global_conf.copy()
-    conf.update(local_conf)
-    return PublicVersionRouter()
+    return PublicVersionRouter(config.CONF)
 
 
 @logging.fail_gracefully
 def admin_version_app_factory(global_conf, **local_conf):
-    conf = global_conf.copy()
-    conf.update(local_conf)
-    return AdminVersionRouter()
+    return AdminVersionRouter(config.CONF)

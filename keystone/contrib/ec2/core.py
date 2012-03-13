@@ -39,7 +39,6 @@ import uuid
 import webob.exc
 
 from keystone import catalog
-from keystone import config
 from keystone import exception
 from keystone import identity
 from keystone import policy
@@ -69,7 +68,7 @@ class Manager(manager.Manager):
 
 class Ec2Extension(wsgi.ExtensionRouter):
     def add_routes(self, mapper):
-        ec2_controller = Ec2Controller()
+        ec2_controller = Ec2Controller(self.conf)
         # validation
         mapper.connect('/ec2tokens',
                        controller=ec2_controller,
@@ -96,12 +95,13 @@ class Ec2Extension(wsgi.ExtensionRouter):
 
 
 class Ec2Controller(wsgi.Application):
-    def __init__(self):
-        self.catalog_api = catalog.Manager(config.CONF)
-        self.identity_api = identity.Manager(config.CONF)
-        self.token_api = token.Manager(config.CONF)
-        self.policy_api = policy.Manager(config.CONF)
-        self.ec2_api = Manager(config.CONF)
+    def __init__(self, conf):
+        self.catalog_api = catalog.Manager(conf)
+        self.identity_api = identity.Manager(conf)
+        self.token_api = token.Manager(conf)
+        self.policy_api = policy.Manager(conf)
+        self.ec2_api = Manager(conf)
+        self.conf = conf
         super(Ec2Controller, self).__init__()
 
     def check_signature(self, creds_ref, credentials):
@@ -195,7 +195,7 @@ class Ec2Controller(wsgi.Application):
         # TODO(termie): i don't think the ec2 middleware currently expects a
         #               full return, but it contains a note saying that it
         #               would be better to expect a full return
-        token_controller = service.TokenController()
+        token_controller = service.TokenController(self.conf)
         return token_controller._format_authenticate(
                 token_ref, roles_ref, catalog_ref)
 

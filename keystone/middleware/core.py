@@ -18,7 +18,6 @@ import json
 
 import webob.exc
 
-from keystone import config
 from keystone import exception
 from keystone.common import serializer
 from keystone.common import wsgi
@@ -55,9 +54,8 @@ class AdminTokenAuthMiddleware(wsgi.Middleware):
 
     admin_token_opt = cfg.StrOpt('admin_token', default='ADMIN')
 
-    def __init__(self, application):
-        super(AdminTokenAuthMiddleware, self).__init__(application)
-        self.conf = config.CONF
+    def __init__(self, application, conf):
+        super(AdminTokenAuthMiddleware, self).__init__(application, conf)
         self.conf.register_opt(self.admin_token_opt)
 
     def process_request(self, request):

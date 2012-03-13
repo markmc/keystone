@@ -232,6 +232,7 @@ class TestCase(unittest.TestCase):
 
         # Service catalog tests need to know the port we ran on.
         port = server.socket_info['socket'][1]
+        wsgi.register_opts(CONF)
         self.opt(public_port=port, admin_port=port)
         return server
 

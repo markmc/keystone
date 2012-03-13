@@ -65,15 +65,15 @@ if __name__ == '__main__':
         CONF.print_help()
         sys.exit(1)
 
-    options = deploy.appconfig('config:%s' % CONF.config_file[0])
+    wsgi.register_opts(CONF)
 
     servers = []
     servers.append(create_server(CONF.config_file[0],
                                  'admin',
                                  CONF.bind_host,
-                                 int(CONF.admin_port)))
+                                 CONF.admin_port))
     servers.append(create_server(CONF.config_file[0],
                                  'main',
                                  CONF.bind_host,
-                                 int(CONF.public_port)))
+                                 CONF.public_port))
     serve(*servers)

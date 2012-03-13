@@ -19,6 +19,7 @@ import os
 from keystone import config
 from keystone import test
 from keystone.catalog import core as catalog_core
+from keystone.common import wsgi
 
 import test_backend
 import default_fixtures
@@ -53,5 +54,6 @@ class TestTemplatedCatalog(test.TestCase, test_backend.CatalogTests):
         self.load_fixtures(default_fixtures)
 
     def test_get_catalog(self):
+        wsgi.register_opts(config.CONF)
         catalog_ref = self.catalog_api.get_catalog('foo', 'bar')
         self.assertDictEqual(catalog_ref, self.DEFAULT_FIXTURE)

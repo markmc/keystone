@@ -28,9 +28,7 @@ from keystone import policy
 from keystone import token
 from keystone.common import manager
 from keystone.common import wsgi
-
-
-CONF = config.CONF
+from keystone.openstack.common import cfg
 
 
 class Manager(manager.Manager):
@@ -41,8 +39,12 @@ class Manager(manager.Manager):
 
     """
 
-    def __init__(self):
-        super(Manager, self).__init__(CONF.identity.driver)
+    opt_group = cfg.OptGroup('identity')
+    driver_opt = cfg.StrOpt('driver',
+                            default='keystone.identity.backends.sql.Identity')
+
+    def __init__(self, conf):
+        super(Manager, self).__init__(conf, self.opt_group, self.driver_opt)
 
 
 class Driver(object):
@@ -238,9 +240,9 @@ class AdminRouter(wsgi.ComposableRouter):
 
 class TenantController(wsgi.Application):
     def __init__(self):
-        self.identity_api = Manager()
-        self.policy_api = policy.Manager()
-        self.token_api = token.Manager()
+        self.identity_api = Manager(config.CONF)
+        self.policy_api = policy.Manager(config.CONF)
+        self.token_api = token.Manager(config.CONF)
         super(TenantController, self).__init__()
 
     def get_all_tenants(self, context, **kw):
@@ -351,9 +353,9 @@ class TenantController(wsgi.Application):
 
 class UserController(wsgi.Application):
     def __init__(self):
-        self.identity_api = Manager()
-        self.policy_api = policy.Manager()
-        self.token_api = token.Manager()
+        self.identity_api = Manager(config.CONF)
+        self.policy_api = policy.Manager(config.CONF)
+        self.token_api = token.Manager(config.CONF)
         super(UserController, self).__init__()
 
     def get_user(self, context, user_id):
@@ -410,9 +412,9 @@ class UserController(wsgi.Application):
 
 class RoleController(wsgi.Application):
     def __init__(self):
-        self.identity_api = Manager()
-        self.token_api = token.Manager()
-        self.policy_api = policy.Manager()
+        self.identity_api = Manager(config.CONF)
+        self.token_api = token.Manager(config.CONF)
+        self.policy_api = policy.Manager(config.CONF)
         super(RoleController, self).__init__()
 
     # COMPAT(essex-3)

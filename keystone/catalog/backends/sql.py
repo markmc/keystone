@@ -25,9 +25,6 @@ from keystone.common import sql
 from keystone.common.sql import migration
 
 
-CONF = config.CONF
-
-
 class Service(sql.ModelBase, sql.DictBase):
     __tablename__ = 'service'
     id = sql.Column(sql.String(64), primary_key=True)
@@ -144,7 +141,7 @@ class Catalog(sql.Base):
         return [e['id'] for e in list(endpoints)]
 
     def get_catalog(self, user_id, tenant_id, metadata=None):
-        d = dict(CONF.iteritems())
+        d = dict(config.CONF.iteritems())
         d.update({'tenant_id': tenant_id,
                   'user_id': user_id})
         catalog = {}

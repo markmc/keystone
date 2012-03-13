@@ -25,6 +25,8 @@ from paste import deploy
 import stubout
 
 from keystone import config
+from keystone import identity
+from keystone import token
 from keystone.common import kvs
 from keystone.common import logging
 from keystone.common import utils
@@ -159,9 +161,8 @@ class TestCase(unittest.TestCase):
 
     def load_backends(self):
         """Hacky shortcut to load the backends for data manipulation."""
-        self.identity_api = utils.import_object(CONF.identity.driver)
-        self.token_api = utils.import_object(CONF.token.driver)
-        self.catalog_api = utils.import_object(CONF.catalog.driver)
+        self.identity_api = identity.Manager(CONF).driver
+        self.token_api = token.Manager(CONF).driver
 
     def load_fixtures(self, fixtures):
         """Hacky basic and naive fixture loading based on a python module.

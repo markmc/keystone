@@ -16,9 +16,10 @@
 
 import copy
 
+from keystone import config
 from keystone import identity
+from keystone.common import passwd
 from keystone.common import sql
-from keystone.common import utils
 from keystone.common.sql import migration
 
 
@@ -31,7 +32,7 @@ def _filter_user(user_ref):
 def _ensure_hashed_password(user_ref):
     pw = user_ref.get('password', None)
     if pw is not None:
-        user_ref['password'] = utils.hash_password(pw)
+        user_ref['password'] = passwd.hash_password(config.CONF, pw)
     return user_ref
 
 
@@ -129,7 +130,7 @@ class Identity(sql.Base, identity.Driver):
         """
         user_ref = self._get_user(user_id)
         if (not user_ref
-            or not utils.check_password(password, user_ref.get('password'))):
+            or not passwd.check_password(password, user_ref.get('password'))):
             raise AssertionError('Invalid user / password')
 
         tenants = self.get_tenants_for_user(user_id)

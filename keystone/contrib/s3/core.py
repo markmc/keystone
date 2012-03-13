@@ -24,18 +24,15 @@ import hmac
 
 from hashlib import sha1
 
-from keystone import config
 from keystone import exception
 from keystone.common import utils
 from keystone.common import wsgi
 from keystone.contrib import ec2
 
-CONF = config.CONF
-
 
 class S3Extension(wsgi.ExtensionRouter):
     def add_routes(self, mapper):
-        controller = S3Controller()
+        controller = S3Controller(self.conf)
         # validation
         mapper.connect('/s3tokens',
                        controller=controller,

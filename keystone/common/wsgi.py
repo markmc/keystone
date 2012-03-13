@@ -32,6 +32,7 @@ import webob
 import webob.dec
 import webob.exc
 
+from keystone import config
 from keystone import exception
 from keystone.common import logging
 from keystone.common import utils
@@ -283,11 +284,13 @@ class Middleware(Application):
         def _factory(app):
             conf = global_config.copy()
             conf.update(local_config)
-            return cls(app)
+            return cls(app, config.CONF)
         return _factory
 
-    def __init__(self, application):
+    def __init__(self, application, conf):
         self.application = application
+        self.conf = conf
+        super(Middleware, self).__init__()
 
     def process_request(self, request):
         """Called on each request.
@@ -357,7 +360,7 @@ class Debug(Middleware):
 class Router(object):
     """WSGI middleware that maps incoming requests to WSGI apps."""
 
-    def __init__(self, mapper):
+    def __init__(self, conf, mapper):
         """Create a router for the given routes.Mapper.
 
         Each route in `mapper` must specify a 'controller', which is a
@@ -381,6 +384,7 @@ class Router(object):
           mapper.connect(None, '/v1.0/{path_info:.*}', controller=BlogApp())
 
         """
+        self.conf = conf
         self.map = mapper
         self._router = routes.middleware.RoutesMiddleware(self._dispatch,
                                                           self.map)
@@ -412,24 +416,24 @@ class Router(object):
 
 
 class ComposingRouter(Router):
-    def __init__(self, mapper=None, routers=None):
+    def __init__(self, conf, mapper=None, routers=None):
         if mapper is None:
             mapper = routes.Mapper()
+        super(ComposingRouter, self).__init__(conf, mapper)
         if routers is None:
             routers = []
         for router in routers:
             router.add_routes(mapper)
-        super(ComposingRouter, self).__init__(mapper)
 
 
 class ComposableRouter(Router):
     """Router that supports use by ComposingRouter."""
 
-    def __init__(self, mapper=None):
+    def __init__(self, conf, mapper=None):
         if mapper is None:
             mapper = routes.Mapper()
+        super(ComposableRouter, self).__init__(conf, mapper)
         self.add_routes(mapper)
-        super(ComposableRouter, self).__init__(mapper)
 
     def add_routes(self, mapper):
         """Add routes to given mapper."""
@@ -441,13 +445,13 @@ class ExtensionRouter(Router):
 
     Expects to be subclassed.
     """
-    def __init__(self, application, mapper=None):
+    def __init__(self, application, conf, mapper=None):
         if mapper is None:
             mapper = routes.Mapper()
+        super(ExtensionRouter, self).__init__(conf, mapper)
         self.application = application
         self.add_routes(mapper)
         mapper.connect('{path_info:.*}', controller=self.application)
-        super(ExtensionRouter, self).__init__(mapper)
 
     def add_routes(self, mapper):
         pass
@@ -478,7 +482,7 @@ class ExtensionRouter(Router):
         def _factory(app):
             conf = global_config.copy()
             conf.update(local_config)
-            return cls(app)
+            return cls(app, config.CONF)
         return _factory
 
 

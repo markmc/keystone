@@ -121,8 +121,8 @@ class Driver(object):
 
 
 class ServiceController(wsgi.Application):
-    def __init__(self):
-        self.catalog_api = Manager(config.CONF)
+    def __init__(self, conf):
+        self.catalog_api = Manager(conf)
         super(ServiceController, self).__init__()
 
     # CRUD extensions
@@ -155,11 +155,11 @@ class ServiceController(wsgi.Application):
 
 
 class EndpointController(wsgi.Application):
-    def __init__(self):
-        self.catalog_api = Manager(config.CONF)
-        self.identity_api = identity.Manager(config.CONF)
-        self.policy_api = policy.Manager(config.CONF)
-        self.token_api = token.Manager(config.CONF)
+    def __init__(self, conf):
+        self.catalog_api = Manager(conf)
+        self.identity_api = identity.Manager(conf)
+        self.policy_api = policy.Manager(conf)
+        self.token_api = token.Manager(conf)
         super(EndpointController, self).__init__()
 
     def get_endpoints(self, context):

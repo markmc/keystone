@@ -136,7 +136,10 @@ def run(cmd, args):
 
 def main(argv=None, config_files=None):
     CONF.reset()
-    args = CONF(config_files=config_files, args=argv)
+    args = CONF(args=argv,
+                project='keystone',
+                usage='%prog COMMAND'
+                default_config_files=config_files)
 
     if len(args) < 2:
         CONF.print_help()
